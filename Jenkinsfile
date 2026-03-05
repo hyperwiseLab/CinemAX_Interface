@@ -11,7 +11,10 @@ pipeline {
         }
         stage('Build Docker Image') {
             when {
-                branch 'release'
+                anyOf {
+                    branch 'release'
+                    expression { env.GIT_BRANCH == 'origin/release' }
+                }
             }
             steps {
                 sh 'docker build --network host -t ${IMAGE_NAME}:latest .'
@@ -19,7 +22,10 @@ pipeline {
         }
         stage('Deploy') {
             when {
-                branch 'release'
+                anyOf {
+                    branch 'release'
+                    expression { env.GIT_BRANCH == 'origin/release' }
+                }
             }
             steps {
                 sh 'mkdir -p /home/hyperwise98/ws/cinemax/uploads'
@@ -43,7 +49,7 @@ pipeline {
                     sh '''
                         docker run -d \
                         --name ${IMAGE_NAME} \
-                        -p 8081:8080 \
+                        -p 8083:8080 \
                         --network global-proxy \
                         --env-file ${ENV_FILE} \
                         -e SPRING_PROFILES_ACTIVE=prod \
