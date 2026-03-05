@@ -1,0 +1,15 @@
+FROM eclipse-temurin:21-jre
+ENV TZ=Asia/Seoul
+WORKDIR /app
+
+# Jenkins 단계에서 만들어진 JAR 복사
+# ✅ 특정 JAR 파일 이름 사용 (plain.jar 제외)
+COPY build/libs/Cinemax-0.0.1-SNAPSHOT.jar /app/app.jar
+
+# 애플리케이션 포트 노출
+EXPOSE 8080
+
+# JVM 옵션 설정
+ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -Duser.timezone=Asia/Seoul"
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
