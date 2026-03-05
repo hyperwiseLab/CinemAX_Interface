@@ -9,7 +9,7 @@ RUN gradle clean build --no-daemon && \
     rm -f build/libs/*-plain.jar
 
 # 2단계: JDK 21로 실행용 이미지 구성
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-jammy
 
 ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
