@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 
 # Plain JAR 제거 후 빌드
-RUN gradle clean build --no-daemon && \
+RUN gradle clean build --no-daemon -x test && \
     rm -f build/libs/*-plain.jar
 
 # 2단계: JRE로 실행용 이미지 구성 (JDK 불필요 → JRE로 경량화)
