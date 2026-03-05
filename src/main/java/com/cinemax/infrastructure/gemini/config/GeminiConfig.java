@@ -40,14 +40,13 @@ public class GeminiConfig {
                     .setCredentials(credentials)
                     .build();
 
+            log.info("Vertex AI initialized successfully.");
             return vertexAI;
         } catch (Exception e) {
-            log.error("Failed to initialize Vertex AI. Please check:", e);
-            log.error("1. keys.json file exists in project root");
-            log.error("2. GOOGLE_APPLICATION_CREDENTIALS environment variable is set");
-            log.error("3. Service account has Vertex AI User role");
-            log.error("4. Project ID matches: {}", properties.getProjectId());
-            throw new RuntimeException("Vertex AI initialization failed: " + e.getMessage(), e);
+            log.warn("Vertex AI initialization failed. Gemini features will be disabled. Reason: {}", e.getMessage());
+            log.warn("Checked: GOOGLE_APPLICATION_CREDENTIALS={}, user.dir={}/keys.json",
+                    System.getenv("GOOGLE_APPLICATION_CREDENTIALS"), System.getProperty("user.dir"));
+            return null;
         }
     }
 
@@ -106,6 +105,11 @@ public class GeminiConfig {
     // Gemini Chat Model Bean 생성
     @Bean
     public VertexAiGeminiChatModel vertexAiGeminiChatModel(VertexAI vertexAI) {
+        if (vertexAI == null) {
+            log.warn("VertexAI bean is null. GeminiChatModel will not be created.");
+            return null;
+        }
+
         VertexAiGeminiChatOptions options = VertexAiGeminiChatOptions.builder()
                 .withModel(properties.getModel())
                 .withTemperature(properties.getTemperature())
