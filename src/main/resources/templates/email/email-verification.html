@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>이메일 인증 | EduVerse</title>
+</head>
+<body style="margin:0; padding:0; background-color:#ffffff; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+<!-- 프리헤더 (숨김) -->
+<div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
+    이메일 인증번호가 도착했습니다. 10분 내에 입력해 주세요.
+</div>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;">
+    <tr>
+        <td align="center" style="padding:40px 20px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:720px;">
+                <!-- 헤더 로고/타이틀 -->
+                <tr>
+                    <td align="left" style="padding:0 0 28px 0;">
+                        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:36px; font-weight:800; letter-spacing:-0.5px; color:#111827;">
+                            EduVerse <span style="color:#3B5BFF;">/</span>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- 인사 및 안내 -->
+                <tr>
+                    <td align="left" style="padding:0 0 16px 0;">
+                        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:22px; font-weight:800; color:#111827;">
+                            고객님, 안녕하세요.
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left" style="padding:0 0 8px 0;">
+                        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; line-height:1.8; color:#374151;">
+                            <a href="#" style="color:#3B5BFF; text-decoration:none; font-weight:700;">EduVerse</a>와 함께해 주셔서 감사합니다.<br>
+                            사이트에서 아래 <strong>인증번호</strong>를 입력해 주세요.<br>
+                            감사합니다.
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- 인증번호 박스 -->
+                <tr>
+                    <td align="left" style="padding:28px 0 24px 0;">
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                            <tr>
+                                <td style="width:130px; background-color:#F3F4F6; color:#111827; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; font-weight:700; padding:16px 20px; border-top-left-radius:8px; border-bottom-left-radius:8px;">
+                                    인증번호
+                                </td>
+                                <td style="background-color:#F3F4F6; color:#111827; font-family:'Courier New',Courier,monospace; font-size:28px; font-weight:700; letter-spacing:2px; padding:14px 20px; border-top-right-radius:8px; border-bottom-right-radius:8px;"
+                                    th:text="${verificationCode}">b20y6d64o6</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- 버튼 -->
+                <tr>
+                    <td align="left" style="padding:8px 0 32px 0;">
+                        <a th:href="${verifyUrl}"
+                           style="display:inline-block; background-color:#3B5BFF; color:#ffffff; text-decoration:none; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; font-weight:700; padding:14px 24px; border-radius:8px;">
+                            홈페이지로 이동하기
+                        </a>
+                    </td>
+                </tr>
+
+                <!-- 회색 안내 박스 -->
+                <tr>
+                    <td align="left" style="padding:0;">
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#F5F7FA; border-radius:8px;">
+                            <tr>
+                                <td style="padding:16px 20px;">
+                                    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:12px; line-height:1.8; color:#6B7280;">
+                                        본 메일은 발신전용으로 회신되지 않습니다.<br>
+                                        문의사항이 있으시면 고객 센터를 이용해주시기 바랍니다.<br>
+                                        <span style="display:inline-block; margin-top:8px; color:#6B7280;">
+                        <span style="color:#111827; font-weight:600;">유효기간</span>:
+                        <span th:text="${expiresAt}">2025-10-29 15:30</span> (10분 후 만료)
+                      </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- 연락처/푸터 -->
+                <tr>
+                    <td align="left" style="padding:18px 0 0 0;">
+                        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; line-height:1.9; color:#6B7280;">
+                            메일 문의&nbsp;&nbsp;
+                            <a href="mailto:dhxogns920@hyperwise.co.kr" style="color:#3B5BFF; text-decoration:none;">dhxogns920@hyperwise.co.kr</a><br>
+                            전화 문의&nbsp; 평일 10:00~18:00 (주말 및 공휴일 제외 / 점심시간 12:00~13:00)
+                        </div>
+                        <div style="height:20px; line-height:20px; font-size:0;">&nbsp;</div>
+                        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:12px; color:#9CA3AF;">
+                            © 2025 HYPERWISE. All rights reserved.
+                        </div>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
