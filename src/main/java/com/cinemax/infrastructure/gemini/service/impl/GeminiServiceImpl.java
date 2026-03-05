@@ -1,0 +1,272 @@
+package com.cinemax.infrastructure.gemini.service.impl;
+
+import com.cinemax.infrastructure.gemini.dto.request.ChatMessage;
+import com.cinemax.infrastructure.gemini.dto.request.GeminiChatRequest;
+import com.cinemax.infrastructure.gemini.dto.response.GeminiChatResponse;
+import com.cinemax.infrastructure.gemini.dto.response.GeminiStreamResponse;
+import com.cinemax.infrastructure.gemini.dto.response.StructuredAnalysisResponse;
+import com.cinemax.infrastructure.gemini.exception.GeminiException;
+import com.cinemax.infrastructure.gemini.service.GeminiService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
+import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatOptions;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Gemini AI 서비스 구현체
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class GeminiServiceImpl implements GeminiService {
+
+    private final VertexAiGeminiChatModel chatModel;
+    private final ObjectMapper objectMapper;
+
+    @Override
+    public String generate(String prompt) {
+        Prompt chatPrompt = new Prompt(prompt);
+        ChatResponse response = chatModel.call(chatPrompt);
+        String content = response.getResult().getOutput().getContent();
+
+        return content;
+    }
+
+    @Override
+    public GeminiChatResponse chat(GeminiChatRequest request) {
+        List<Message> messages = buildMessages(request);
+
+        // 요청별 옵션 설정
+        VertexAiGeminiChatOptions.Builder optionsBuilder = VertexAiGeminiChatOptions.builder();
+        if (request.getTemperature() != null) {
+            optionsBuilder.withTemperature(request.getTemperature());
+        }
+        if (request.getMaxTokens() != null) {
+            optionsBuilder.withMaxOutputTokens(request.getMaxTokens());
+        }
+
+        Prompt prompt = new Prompt(messages, optionsBuilder.build());
+        ChatResponse response = chatModel.call(prompt);
+
+        GeminiChatResponse chatResponse = GeminiChatResponse.from(response);
+
+        return chatResponse;
+    }
+
+    @Override
+    public Flux<GeminiStreamResponse> chatStream(GeminiChatRequest request) {
+        List<Message> messages = buildMessages(request);
+        Prompt prompt = new Prompt(messages);
+
+        return chatModel.stream(prompt)
+                .map(GeminiStreamResponse::from)
+                .doOnComplete(() -> log.debug("Streaming completed"))
+                .doOnError(e -> log.error("Streaming error", e));
+    }
+
+    @Override
+    public GeminiChatResponse chatWithContext(List<ChatMessage> history, String userMessage) {
+        List<Message> messages = new ArrayList<>();
+
+        // 히스토리 추가
+        if (history != null && !history.isEmpty()) {
+            messages.addAll(history.stream()
+                    .map(this::convertToMessage)
+                    .collect(Collectors.toList()));
+        }
+
+        // 새 사용자 메시지 추가
+        messages.add(new UserMessage(userMessage));
+
+        Prompt prompt = new Prompt(messages);
+        ChatResponse response = chatModel.call(prompt);
+
+        return GeminiChatResponse.from(response);
+    }
+
+    /*
+    프롬프트 먹일 내용
+    1. 과제의 의도와 부합한지 ******중요******
+    2. 학생이 작성한 코드, 작성한 코드에 대한 컴파일 결과값
+    3. 잠재적 버그나 문제점
+    4. 결과값에 대한 특정 포맷 컨벤션 부합 일치 여부 확인
+    5. 사소한 문법(스페이스바, 단락 처리의 경우) 답변과 비교 분석
+     */
+    @Override
+    public String reviewCode(String code, String language) {
+        String promptText = String.format(
+                """
+                다음 %s 코드를 리뷰해주세요.
+
+                코드:
+                ```%s
+                %s
+                ```
+
+                다음 항목만 간결하게 요약해주세요 (각 항목 1-2줄):
+                1. 과제 의도 부합 여부
+                2. 주요 버그나 문제점
+                3. 핵심 개선 사항
+
+                **반드시 300자 이내로 간결하게 작성해주세요.**
+                """,
+                language, language, code
+        );
+
+        Prompt prompt = new Prompt(promptText);
+        ChatResponse response = chatModel.call(prompt);
+        String content = response.getResult().getOutput().getContent();
+
+        return content;
+    }
+
+    @Override
+    public String generateFeedback(String studentCode, String expectedOutput, String rubric) {
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("학생이 작성한 코드에 대한 피드백을 생성해주세요.\n\n");
+        promptBuilder.append("학생 코드:\n```\n").append(studentCode).append("\n```\n\n");
+        promptBuilder.append("기대 출력:\n").append(expectedOutput).append("\n\n");
+
+        if (rubric != null && !rubric.isBlank()) {
+            promptBuilder.append("채점 기준:\n").append(rubric).append("\n\n");
+        }
+
+        promptBuilder.append("""
+                다음 항목만 간결하게 작성해주세요 (각 항목 1-2줄):
+                1. 요구사항 충족 여부
+                2. 잘한 점 (핵심 1가지)
+                3. 개선 필요 사항 (핵심 1가지)
+
+                **반드시 300자 이내로 간결하게 작성해주세요.**
+                """);
+
+        Prompt prompt = new Prompt(promptBuilder.toString());
+        ChatResponse response = chatModel.call(prompt);
+        String content = response.getResult().getOutput().getContent();
+
+        return content;
+    }
+
+    @Override
+    public StructuredAnalysisResponse generateStructuredAnalysis(String studentCode, String expectedOutput, String rubric) throws JsonProcessingException {
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("학생이 작성한 코드를 분석하고 **반드시 JSON 형식으로만** 응답해주세요.\n\n");
+        promptBuilder.append("학생 코드:\n```\n").append(studentCode).append("\n```\n\n");
+        promptBuilder.append("기대 출력:\n").append(expectedOutput).append("\n\n");
+
+        if (rubric != null && !rubric.isBlank()) {
+            promptBuilder.append("채점 기준:\n").append(rubric).append("\n\n");
+        }
+
+        promptBuilder.append("""
+                다음 JSON 형식으로 **정확하게** 응답해주세요. 추가 설명 없이 JSON만 반환하세요:
+
+                {
+                  "requirementsMet": true 또는 false (코드가 요구사항을 충족하는지),
+                  "codeQualityPass": true 또는 false (코드 품질이 기준을 통과하는지),
+                  "hasLogicError": true 또는 false (논리 오류가 있는지),
+                  "hasSecurityIssue": true 또는 false (보안 이슈가 있는지),
+                  "needsImprovement": true 또는 false (개선이 필요한지),
+                  "feedback": "전체 피드백 텍스트",
+                  "strengths": "잘한 점",
+                  "improvements": "개선이 필요한 점",
+                  "advice": "학습 조언"
+                }
+
+                주의: JSON 형식만 반환하고, 다른 텍스트나 마크다운은 포함하지 마세요.
+                """);
+
+        // 일관성 있는 JSON 응답을 위해 낮은 temperature 사용
+        VertexAiGeminiChatOptions options = VertexAiGeminiChatOptions.builder()
+                .withTemperature(0.3)
+                .build();
+
+        Prompt prompt = new Prompt(promptBuilder.toString(), options);
+        ChatResponse response = chatModel.call(prompt);
+
+        String content = response.getResult().getOutput().getContent();
+
+        // JSON 파싱 전 전처리 (마크다운 코드 블록 제거)
+        String jsonContent = extractJsonFromResponse(content);
+
+        // JSON 파싱
+        StructuredAnalysisResponse structuredResponse = objectMapper.readValue(jsonContent, StructuredAnalysisResponse.class);
+
+        return structuredResponse;
+    }
+
+    // Gemini 응답에서 JSON 추출
+    private String extractJsonFromResponse(String response) {
+        // 마크다운 코드 블록 제거
+        String cleaned = response.trim();
+
+        // ```json ... ``` 형식 제거
+        if (cleaned.startsWith("```json")) {
+            cleaned = cleaned.substring(7);
+        } else if (cleaned.startsWith("```")) {
+            cleaned = cleaned.substring(3);
+        }
+
+        if (cleaned.endsWith("```")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 3);
+        }
+
+        cleaned = cleaned.trim();
+
+        // JSON 객체 시작 찾기
+        int jsonStart = cleaned.indexOf('{');
+        int jsonEnd = cleaned.lastIndexOf('}');
+
+        if (jsonStart >= 0 && jsonEnd > jsonStart) {
+            cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+        }
+
+        return cleaned;
+    }
+
+    // GeminiChatRequest로부터 Message 리스트 생성
+    private List<Message> buildMessages(GeminiChatRequest request) {
+        List<Message> messages = new ArrayList<>();
+
+        // 시스템 프롬프트 추가
+        if (request.getSystemPrompt() != null && !request.getSystemPrompt().isBlank()) {
+            messages.add(new SystemMessage(request.getSystemPrompt()));
+        }
+
+        // 히스토리 추가
+        if (request.getHistory() != null && !request.getHistory().isEmpty()) {
+            messages.addAll(request.getHistory().stream()
+                    .map(this::convertToMessage)
+                    .collect(Collectors.toList()));
+        }
+
+        // 사용자 메시지 추가
+        messages.add(new UserMessage(request.getMessage()));
+
+        return messages;
+    }
+
+    // ChatMessage를 Spring AI Message로 변환
+    private Message convertToMessage(ChatMessage chatMessage) {
+        return switch (chatMessage.getRole().toLowerCase()) {
+            case "system" -> new SystemMessage(chatMessage.getContent());
+            case "user" -> new UserMessage(chatMessage.getContent());
+            case "assistant" -> new AssistantMessage(chatMessage.getContent());
+            default -> new UserMessage(chatMessage.getContent());
+        };
+    }
+}
