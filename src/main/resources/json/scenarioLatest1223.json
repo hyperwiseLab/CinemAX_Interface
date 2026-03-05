@@ -1,0 +1,1062 @@
+{
+  "courseTitle": "TestCase 포함된 시나리오",
+  "language": "python",
+  "description": "5주차 API 요청 테스트",
+  "weeks": [
+    {
+      "week": 1,
+      "curLev": 1,
+      "title": "1주차: 기초",
+      "cycles": [
+        {
+          "title": "변수와 자료형",
+          "filename": "variables.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "변수 선언과 할당",
+              "syntax_comment": "등호를 사용하여 변수에 값을 저장합니다. 등호를 사용하여 변수에 값을 저장합니다.등호를 사용하여 변수에 값을 저장합니다.등호를 사용하여 변수에 값을 저장합니다. ",
+              "syntax_code": "student_name = 'Alice'\nscore = 95"
+            },
+            {
+              "syntax_title": "다양한 자료형",
+              "syntax_comment": "문자열, 정수, 실수 등 여러 종류의 데이터를 저장할 수 있습니다",
+              "syntax_code": "message = 'Hello'\ncount = 10\nprice = 99.99\nis_active = True"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "기본 변수 선언",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "변수 선언 연습",
+                "content": "자신의 정보를 담을 <span className='font-semibold text-2xl text-indigo-400'>변수</span>를 만들어보세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "변수 만들기",
+                "content": "변수는 데이터를 담는 그릇이에요. 변수명 = 값 형태로 작성합니다"
+              },
+              "startCode": "# TODO: 세 개의 변수를 만들어 값을 할당하세요\nname = \nage = \ncity = ",
+              "testCode": "assert 'name' in locals() and 'age' in locals() and 'city' in locals(), '세 개의 변수가 모두 정의되어야 합니다.'",
+              "testcase": {
+                "inputText": "1",
+                "expectedOutput": "1",
+                "weight": 10
+              },
+              "lecture": {
+                "character": "profKim",
+                "title": "변수와 자료형",
+                "keyTakeaway": "변수는 값을 저장하는 메모리 공간입니다",
+                "sandboxCode": "name = 'John'\nage = 25\nprint(name, age)",
+                "sections": [
+                  {
+                    "heading": "기본 문법",
+                    "text": "변수는 값을 저장하고 나중에 사용할 수 있는 라벨입니다",
+                    "code": "variable_name = value"
+                  },
+                  {
+                    "heading": "자료형",
+                    "text": "파이썬은 동적 타이핑을 지원합니다",
+                    "code": "# 문자열\ntext = 'hello'\n# 숫자\nnum = 42"
+                  }
+                ]
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "여러 자료형 다루기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "자료형 혼합 과제",
+                "content": "문자열, 정수, 실수를 모두 사용하여 변수를 만드세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "다양한 자료형",
+                "content": "파이썬은 자동으로 자료형을 인식하므로 따옴표 유무만 주의하면 됩니다"
+              },
+              "startCode": "# TODO: 문자열, 정수, 실수 변수를 각각 만드세요\nproduct = 'Laptop'\nquantity = 5\nprice = 1299.99",
+              "testCode": "assert isinstance(product, str) and isinstance(quantity, int) and isinstance(price, float), '각 변수가 올바른 자료형이어야 합니다.'",
+              "testcase": {
+                "inputText": "1",
+                "expectedOutput": "1",
+                "weight": 10
+              },
+              "lecture": {
+                "character": "profKim",
+                "title": "자료형의 종류",
+                "keyTakeaway": "각 자료형은 서로 다른 종류의 데이터를 표현합니다",
+                "sandboxCode": "text = 'Python'\nwhole_num = 42\ndecimal_num = 3.14\nprint(type(text), type(whole_num), type(decimal_num))",
+                "sections": [
+                  {
+                    "heading": "문자열 (str)",
+                    "text": "텍스트 데이터는 따옴표로 감싸서 표현합니다",
+                    "code": "greeting = 'Hello'\nmessage = \"World\""
+                  },
+                  {
+                    "heading": "숫자형",
+                    "text": "정수는 int, 소수는 float 자료형입니다",
+                    "code": "age = 25  # int\nheight = 175.5  # float"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "제어문",
+          "filename": "control_flow.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "if 문",
+              "syntax_comment": "조건에 따라 코드를 실행합니다",
+              "syntax_code": "if age >= 18:\n    print('adult')"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "간단한 조건문",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "간단한 조건문 과제",
+                "content": "숫자를 비교하는 if 문을 작성하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "조건문 설명",
+                "content": "if 다음에 조건을 쓰고, 참일 때 실행할 코드를 들여쓰기합니다"
+              },
+              "startCode": "number = 10\nif number > 5:\n    print('5보다 큽니다')",
+              "testCode": "import io; from contextlib import redirect_stdout; f = io.StringIO(); with redirect_stdout(f): exec(\"number = 10\\nif number > 5:\\n    print('5보다 큽니다')\"); output = f.getvalue().strip(); assert output == '5보다 큽니다', f\"기대값: '5보다 큽니다', 실제 출력: {output}\"",
+              "testcase": {
+                "inputText": "10",
+                "expectedOutput": "5보다 큽니다",
+                "weight": 10
+              },
+              "lecture": {
+                "character": "profKim",
+                "title": "조건문",
+                "keyTakeaway": "if문으로 조건을 판단하고 다른 코드를 실행합니다",
+                "sandboxCode": "number = 10\nif number > 5:\n    print('5보다 큽니다')",
+                "sections": [
+                  {
+                    "heading": "if 구조",
+                    "text": "조건이 참일 때 코드를 실행합니다",
+                    "code": "if condition:\n    # true일 때 실행"
+                  }
+                ]
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "조건문 작성하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "조건문 과제",
+                "content": "if-else 문으로 나이를 확인하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "조건문 설명",
+                "content": "if 다음에 조건을 쓰고, 참일 때 실행할 코드를 들여쓰기합니다"
+              },
+              "startCode": "age = 20\nif age >= 18:\n    print('You are an adult')\nelse:\n    print('You are a minor')",
+              "testCode": "import io; from contextlib import redirect_stdout; f = io.StringIO(); with redirect_stdout(f): exec(\"age = 20\\nif age >= 18:\\n    print('You are an adult')\\nelse:\\n    print('You are a minor')\"); output = f.getvalue().strip(); assert output == 'You are an adult', f\"기대값: 'You are an adult', 실제 출력: {output}\"",
+              "testcase": {
+                "inputText": "20",
+                "expectedOutput": "You are an adult",
+                "weight": 10
+              },
+              "lecture": {
+                "character": "profKim",
+                "title": "조건문",
+                "keyTakeaway": "if문으로 조건을 판단하고 다른 코드를 실행합니다",
+                "sandboxCode": "age = 20\nif age >= 18:\n    print('You are an adult')\nelse:\n    print('You are a minor')",
+                "sections": [
+                  {
+                    "heading": "if-else 구조",
+                    "text": "참일 때와 거짓일 때 다른 코드를 실행합니다",
+                    "code": "if condition:\n    # true일 때\nelse:\n    # false일 때"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "title": "2주차: 심화",
+      "curLev": 1,
+      "cycles": [
+        {
+          "title": "변수와 자료형",
+          "filename": "type_conversion.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "자료형 변환",
+              "syntax_comment": "int(), float(), str() 함수로 자료형을 변환합니다",
+              "syntax_code": "num_str = '100'\nnum_int = int(num_str)\nnum_float = float(num_str)"
+            },
+            {
+              "syntax_title": "형변환의 활용",
+              "syntax_comment": "계산을 위해 문자열을 숫자로 변환하거나 출력을 위해 숫자를 문자열로 변환합니다",
+              "syntax_code": "age = 25\nmessage = 'I am ' + str(age) + ' years old'"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "자료형 변환하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "형변환 연습",
+                "content": "문자열로 된 숫자를 정수와 실수로 변환하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "형변환 함수",
+                "content": "int()는 정수로, float()는 실수로, str()는 문자열로 변환합니다"
+              },
+              "startCode": "# TODO: 문자열을 숫자로 변환하세요\ntext_num = '42'\ninteger_num = int(text_num)\nfloat_num = float(text_num)",
+              "testCode": "text_num = '42'; integer_num = int(text_num); float_num = float(text_num); assert integer_num == 42 and float_num == 42.0, '변환이 올바르게 수행되어야 합니다.'",
+              "lecture": {
+                "character": "profKim",
+                "title": "자료형 변환",
+                "keyTakeaway": "다른 자료형 간에 데이터를 변환할 수 있습니다",
+                "sandboxCode": "num_str = '123'\nnum = int(num_str)\nprint(num + 10)",
+                "sections": [
+                  {
+                    "heading": "int() 함수",
+                    "text": "문자열이나 실수를 정수로 변환합니다",
+                    "code": "x = int('50')  # 50\ny = int(3.14)  # 3"
+                  },
+                  {
+                    "heading": "float() 함수",
+                    "text": "문자열이나 정수를 실수로 변환합니다",
+                    "code": "x = float('3.14')  # 3.14\ny = float(10)  # 10.0"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "실전 형변환",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "복합 형변환 과제",
+                "content": "사용자 입력을 받아 계산하는 프로그램을 만드세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "형변환 응용",
+                "content": "입력값은 문자열이므로 계산 전에 숫자로 변환해야 합니다"
+              },
+              "startCode": "# 가격과 수량을 곱해서 총액을 계산하세요\nprice = '1500'\nquantity = '3'\ntotal = int(price) * int(quantity)\nprint(f'총액: {total}원')",
+              "testCode": "price = '1500'; quantity = '3'; total = int(price) * int(quantity); assert total == 4500, '계산 결과가 올바라야 합니다.'",
+              "lecture": {
+                "character": "profKim",
+                "title": "형변환의 활용",
+                "keyTakeaway": "실전에서는 입력값을 적절한 자료형으로 변환하여 사용합니다",
+                "sandboxCode": "width = '10'\nheight = '20'\narea = int(width) * int(height)\nprint(f'넓이: {area}')",
+                "sections": [
+                  {
+                    "heading": "문자열 연산 vs 숫자 연산",
+                    "text": "문자열끼리는 더하면 연결되고, 숫자끼리는 더하면 합산됩니다",
+                    "code": "'10' + '20'  # '1020'\nint('10') + int('20')  # 30"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            }
+          ]
+        },
+        {
+          "title": "제어문",
+          "filename": "elif_conditions.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "elif 문",
+              "syntax_comment": "여러 조건을 순서대로 검사합니다",
+              "syntax_code": "if score >= 90:\n    print('A')\nelif score >= 80:\n    print('B')\nelse:\n    print('C')"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "다중 조건 처리",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "elif 사용하기",
+                "content": "점수에 따라 <span className='text-blue'>등급을</span> 출력하는 프로그램을 작성하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "elif 설명",
+                "content": "elif는 이전 조건이 거짓일 때 다음 조건을 검사합니다"
+              },
+              "startCode": "score = 85\nif score >= 90:\n    print('A 등급')\nelif score >= 80:\n    print('B 등급')\nelif score >= 70:\n    print('C 등급')\nelse:\n    print('D 등급')",
+              "testCode": "import io; from contextlib import redirect_stdout; f = io.StringIO(); with redirect_stdout(f): exec(\"score = 85\\nif score >= 90:\\n    print('A 등급')\\nelif score >= 80:\\n    print('B 등급')\\nelif score >= 70:\\n    print('C 등급')\\nelse:\\n    print('D 등급')\"); output = f.getvalue().strip(); assert output == 'B 등급', f\"기대값: 'B 등급', 실제 출력: {output}\"",
+              "lecture": {
+                "character": "profKim",
+                "title": "elif를 사용한 다중 조건",
+                "keyTakeaway": "elif로 여러 조건을 순차적으로 검사할 수 있습니다",
+                "sandboxCode": "temperature = 25\nif temperature > 30:\n    print('더워요')\nelif temperature > 20:\n    print('따뜻해요')\nelse:\n    print('추워요')",
+                "sections": [
+                  {
+                    "heading": "if-elif-else 구조",
+                    "text": "위에서부터 순서대로 조건을 검사하며, 처음 만나는 참인 조건만 실행됩니다",
+                    "code": "if condition1:\n    # condition1이 참\nelif condition2:\n    # condition2가 참\nelse:\n    # 모두 거짓"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "복잡한 조건 처리",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "고급 조건문",
+                "content": "나이와 회원 등급에 따라 할인율을 계산하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "조건 결합",
+                "content": "and, or 연산자로 여러 조건을 결합할 수 있습니다"
+              },
+              "startCode": "age = 25\nmembership = 'gold'\n\nif membership == 'vip':\n    discount = 30\nelif membership == 'gold' and age < 30:\n    discount = 20\nelif membership == 'gold':\n    discount = 15\nelif age < 20:\n    discount = 10\nelse:\n    discount = 0\n\nprint(f'할인율: {discount}%')",
+              "testCode": "age = 25; membership = 'gold'; discount = 0; if membership == 'vip': discount = 30; elif membership == 'gold' and age < 30: discount = 20; elif membership == 'gold': discount = 15; elif age < 20: discount = 10; else: discount = 0; assert discount == 20, '할인율이 올바르게 계산되어야 합니다.'",
+              "lecture": {
+                "character": "profKim",
+                "title": "복합 조건문",
+                "keyTakeaway": "여러 조건을 and, or로 결합하여 복잡한 로직을 구현할 수 있습니다",
+                "sandboxCode": "score = 85\nattendance = 95\n\nif score >= 90 and attendance >= 90:\n    print('A+')\nelif score >= 80:\n    print('A')\nelse:\n    print('B')",
+                "sections": [
+                  {
+                    "heading": "and 연산자",
+                    "text": "모든 조건이 참이어야 전체가 참입니다",
+                    "code": "if age >= 18 and has_license:\n    print('운전 가능')"
+                  },
+                  {
+                    "heading": "or 연산자",
+                    "text": "하나라도 참이면 전체가 참입니다",
+                    "code": "if day == 'Saturday' or day == 'Sunday':\n    print('주말')"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            }
+          ]
+        },
+        {
+          "title": "함수",
+          "filename": "functions_basics.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "함수 정의",
+              "syntax_comment": "def 키워드로 함수를 정의합니다",
+              "syntax_code": "def say_hello():\n    print('Hello!')"
+            },
+            {
+              "syntax_title": "매개변수와 반환값",
+              "syntax_comment": "함수는 입력을 받아 결과를 반환할 수 있습니다",
+              "syntax_code": "def add(a, b):\n    return a + b"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "기본 함수 만들기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "함수 정의 연습",
+                "content": "간단한 인사 함수를 만드세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "함수 기초",
+                "content": "def 함수명(): 형식으로 함수를 정의하고 호출할 수 있습니다"
+              },
+              "startCode": "# TODO: 인사하는 함수를 만드세요\ndef greet():\n    return 'Welcome!'\n\nresult = greet()\nprint(result)",
+              "testCode": "def greet(): return 'Welcome!'; assert greet() == 'Welcome!', '함수가 올바르게 작동해야 합니다.'",
+              "lecture": {
+                "character": "profKim",
+                "title": "함수의 기초",
+                "keyTakeaway": "함수는 재사용 가능한 코드 블록입니다",
+                "sandboxCode": "def show_message():\n    return '안녕하세요!'\n\nprint(show_message())",
+                "sections": [
+                  {
+                    "heading": "함수 정의",
+                    "text": "def 키워드 뒤에 함수명과 괄호를 작성합니다",
+                    "code": "def function_name():\n    # 실행할 코드\n    return result"
+                  },
+                  {
+                    "heading": "함수 호출",
+                    "text": "함수명 뒤에 괄호를 붙여 호출합니다",
+                    "code": "result = function_name()"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "매개변수가 있는 함수",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "매개변수 활용",
+                "content": "두 수를 받아 곱셈 결과를 반환하는 함수를 만드세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "매개변수 사용",
+                "content": "함수 정의 시 괄호 안에 매개변수를 지정할 수 있습니다"
+              },
+              "startCode": "def multiply(x, y):\n    result = x * y\n    return result\n\nprint(multiply(4, 5))",
+              "testCode": "def multiply(x, y): return x * y; assert multiply(4, 5) == 20 and multiply(3, 7) == 21, '곱셈이 올바르게 수행되어야 합니다.'",
+              "lecture": {
+                "character": "profKim",
+                "title": "매개변수와 반환값",
+                "keyTakeaway": "함수는 입력을 받아 처리한 후 결과를 반환합니다",
+                "sandboxCode": "def calculate_area(width, height):\n    area = width * height\n    return area\n\nprint(calculate_area(10, 20))",
+                "sections": [
+                  {
+                    "heading": "매개변수",
+                    "text": "함수에 전달되는 입력값입니다",
+                    "code": "def greet(name):\n    return f'Hello, {name}!'"
+                  },
+                  {
+                    "heading": "반환값",
+                    "text": "return으로 함수의 결과를 돌려줍니다",
+                    "code": "def square(n):\n    return n * n"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 3,
+      "title": "3주차: 반복문",
+      "curLev": 2,
+      "cycles": [
+        {
+          "title": "반복문 기초",
+          "filename": "loops.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "for 반복문",
+              "syntax_comment": "파이썬에서 반복문을 사용하는 방법",
+              "syntax_code": "for i in range(5):\n    print(i)"
+            },
+            {
+              "syntax_title": "while 반복문",
+              "syntax_comment": "조건이 참일 동안 반복합니다",
+              "syntax_code": "while x > 0:\n    print(x)\n    x -= 1"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "for 반복문 작성하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "반복문 과제",
+                "content": "1부터 5까지 출력하는 반복문을 작성하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "반복문 설명",
+                "content": "for 반복문은 range()와 함께 사용하여 반복합니다"
+              },
+              "startCode": "# TODO: 1부터 5까지 출력하세요\nfor i in range(1, 6):\n    print(i)",
+              "testCode": "import io; from contextlib import redirect_stdout; f = io.StringIO(); with redirect_stdout(f): exec(\"for i in range(1, 6):\\n    print(i)\"); output = f.getvalue().strip(); expected = '1\\n2\\n3\\n4\\n5'; assert output == expected, f\"기대값: {expected}, 실제 출력: {output}\"",
+              "lecture": {
+                "character": "profKim",
+                "title": "for 반복문",
+                "keyTakeaway": "for 반복문은 일정 횟수만큼 반복합니다",
+                "sandboxCode": "for i in range(5):\n    print(f'반복: {i}')",
+                "sections": [
+                  {
+                    "heading": "range() 함수",
+                    "text": "range()는 반복할 수의 범위를 지정합니다",
+                    "code": "for i in range(5):\n    print(i)  # 0부터 4까지"
+                  },
+                  {
+                    "heading": "시작값과 끝값",
+                    "text": "range(start, end)는 start부터 end-1까지 반복합니다",
+                    "code": "for i in range(1, 6):\n    print(i)  # 1부터 5까지"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "리스트와 반복문",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "리스트 반복 과제",
+                "content": "리스트의 요소를 반복해서 출력하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "리스트 반복 설명",
+                "content": "for 반복문으로 리스트의 각 요소에 접근할 수 있습니다"
+              },
+              "startCode": "fruits = ['apple', 'banana', 'orange']\nfor fruit in fruits:\n    print(f'I like {fruit}')",
+              "testCode": "import io; from contextlib import redirect_stdout; f = io.StringIO(); with redirect_stdout(f): exec(\"fruits = ['apple', 'banana', 'orange']\\nfor fruit in fruits:\\n    print(f'I like {fruit}')\"); output = f.getvalue().strip(); assert 'apple' in output and 'banana' in output and 'orange' in output, f\"모든 과일이 출력되어야 합니다\"",
+              "lecture": {
+                "character": "profKim",
+                "title": "리스트와 반복문",
+                "keyTakeaway": "for 반복문으로 리스트의 모든 요소를 순회할 수 있습니다",
+                "sandboxCode": "numbers = [1, 2, 3, 4, 5]\nfor num in numbers:\n    print(num * 2)",
+                "sections": [
+                  {
+                    "heading": "리스트 순회",
+                    "text": "for 반복문으로 리스트의 각 요소에 접근합니다",
+                    "code": "items = ['a', 'b', 'c']\nfor item in items:\n    print(item)"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            }
+          ]
+        },
+        {
+          "title": "리스트와 딕셔너리",
+          "filename": "data_structures.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "리스트 생성",
+              "syntax_comment": "여러 값을 저장하는 리스트",
+              "syntax_code": "numbers = [1, 2, 3, 4, 5]"
+            },
+            {
+              "syntax_title": "딕셔너리 생성",
+              "syntax_comment": "키-값 쌍으로 데이터를 저장합니다",
+              "syntax_code": "person = {'name': 'John', 'age': 25}"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "리스트 조작하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "리스트 과제",
+                "content": "리스트에 요소를 추가하고 길이를 구하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "리스트 설명",
+                "content": "append() 메서드로 요소를 추가할 수 있습니다"
+              },
+              "startCode": "numbers = [1, 2, 3]\nnumbers.append(4)\nprint(len(numbers))",
+              "testCode": "import io; from contextlib import redirect_stdout; f = io.StringIO(); with redirect_stdout(f): exec(\"numbers = [1, 2, 3]\\nnumbers.append(4)\\nprint(len(numbers))\"); output = f.getvalue().strip(); assert output == '4', f\"기대값: 4, 실제 출력: {output}\"",
+              "lecture": {
+                "character": "profKim",
+                "title": "리스트 메서드",
+                "keyTakeaway": "append()로 리스트에 새 요소를 추가합니다",
+                "sandboxCode": "items = ['a', 'b']\nitems.append('c')\nprint(items)",
+                "sections": [
+                  {
+                    "heading": "리스트 메서드",
+                    "text": "append(), remove(), pop() 등으로 리스트를 조작합니다",
+                    "code": "lst = [1, 2, 3]\nlst.append(4)  # [1, 2, 3, 4]\nlst.remove(2)  # [1, 3, 4]"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "딕셔너리 사용하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "딕셔너리 과제",
+                "content": "딕셔너리에서 값을 추출하고 새로운 키-값을 추가하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "딕셔너리 설명",
+                "content": "딕셔너리는 dict[key] = value로 접근합니다"
+              },
+              "startCode": "person = {'name': 'Alice', 'age': 30}\nprint(person['name'])\nperson['city'] = 'Seoul'",
+              "testCode": "person = {'name': 'Alice', 'age': 30}; exec(\"person['city'] = 'Seoul'\"); assert 'city' in person and person['city'] == 'Seoul', '새 키-값이 추가되어야 합니다'",
+              "lecture": {
+                "character": "profKim",
+                "title": "딕셔너리",
+                "keyTakeaway": "딕셔너리는 키로 값을 저장하고 접근합니다",
+                "sandboxCode": "student = {'name': 'Bob', 'grade': 'A'}\nprint(student['name'])",
+                "sections": [
+                  {
+                    "heading": "딕셔너리 생성과 접근",
+                    "text": "중괄호 {}로 만들고 키로 접근합니다",
+                    "code": "info = {'key': 'value'}\nvalue = info['key']"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 4,
+      "title": "4주차: 함수와 모듈",
+      "curLev": 2,
+      "cycles": [
+        {
+          "title": "함수 심화",
+          "filename": "advanced_functions.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "함수 정의",
+              "syntax_comment": "여러 매개변수를 가진 함수",
+              "syntax_code": "def calculate(a, b, operation):\n    if operation == 'add':\n        return a + b"
+            },
+            {
+              "syntax_title": "기본값 매개변수",
+              "syntax_comment": "기본값이 있는 매개변수",
+              "syntax_code": "def greet(name='Guest'):\n    return f'Hello, {name}!'"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "기본값 매개변수 사용하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "함수 기본값 과제",
+                "content": "기본값이 있는 함수를 작성하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "기본값 설명",
+                "content": "함수 정의 시 매개변수에 기본값을 지정할 수 있습니다"
+              },
+              "startCode": "def introduce(name='Anonymous'):\n    return f'My name is {name}'\n\nprint(introduce())\nprint(introduce('John'))",
+              "testCode": "def introduce(name='Anonymous'): return f'My name is {name}'; assert introduce() == 'My name is Anonymous' and introduce('John') == 'My name is John', '기본값이 올바르게 작동해야 합니다'",
+              "lecture": {
+                "character": "profKim",
+                "title": "기본값 매개변수",
+                "keyTakeaway": "기본값이 있으면 함수 호출 시 인자를 생략할 수 있습니다",
+                "sandboxCode": "def power(x, y=2):\n    return x ** y\n\nprint(power(3))    # 9\nprint(power(3, 3)) # 27",
+                "sections": [
+                  {
+                    "heading": "기본값 문법",
+                    "text": "매개변수 뒤에 = 기본값을 붙입니다",
+                    "code": "def add(a, b=0):\n    return a + b"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "가변 매개변수 사용하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "가변 매개변수 과제",
+                "content": "여러 개의 인자를 받아 합을 구하는 함수를 작성하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "가변 매개변수 설명",
+                "content": "*args를 사용하면 여러 개의 인자를 받을 수 있습니다"
+              },
+              "startCode": "def sum_all(*numbers):\n    total = 0\n    for num in numbers:\n        total += num\n    return total\n\nprint(sum_all(1, 2, 3, 4, 5))",
+              "testCode": "def sum_all(*numbers): total = sum(numbers); return total; assert sum_all(1, 2, 3, 4, 5) == 15, '모든 숫자의 합이 올바르게 계산되어야 합니다'",
+              "lecture": {
+                "character": "profKim",
+                "title": "가변 매개변수",
+                "keyTakeaway": "*args를 사용하면 개수가 정해지지 않은 인자를 받을 수 있습니다",
+                "sandboxCode": "def print_args(*args):\n    for arg in args:\n        print(arg)\n\nprint_args(1, 2, 3, 'hello')",
+                "sections": [
+                  {
+                    "heading": "*args 사용",
+                    "text": "가변 개수의 위치 인자를 받습니다",
+                    "code": "def func(*args):\n    print(args)  # 튜플로 받음"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            }
+          ]
+        },
+        {
+          "title": "에러 처리",
+          "filename": "error_handling.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "try-except",
+              "syntax_comment": "예외를 처리하는 방법",
+              "syntax_code": "try:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print('0으로 나눌 수 없습니다')"
+            },
+            {
+              "syntax_title": "finally",
+              "syntax_comment": "예외 발생 여부와 관계없이 실행",
+              "syntax_code": "try:\n    file = open('test.txt')\nfinally:\n    file.close()"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "try-except 사용하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "예외 처리 과제",
+                "content": "0으로 나누는 예외를 처리하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "예외 처리 설명",
+                "content": "try-except 블록으로 오류를 처리할 수 있습니다"
+              },
+              "startCode": "try:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print('0으로 나눌 수 없습니다')\n    result = 0\n\nprint(result)",
+              "testCode": "import io; from contextlib import redirect_stdout; f = io.StringIO(); with redirect_stdout(f): exec(\"try:\\n    result = 10 / 0\\nexcept ZeroDivisionError:\\n    print('0으로 나눌 수 없습니다')\\n    result = 0\\nprint(result)\"); output = f.getvalue(); assert '0으로 나눌 수 없습니다' in output, '예외가 처리되어야 합니다'",
+              "lecture": {
+                "character": "profKim",
+                "title": "예외 처리",
+                "keyTakeaway": "try-except로 프로그램이 중단되지 않도록 예외를 처리합니다",
+                "sandboxCode": "try:\n    num = int('hello')\nexcept ValueError:\n    print('숫자가 아닙니다')",
+                "sections": [
+                  {
+                    "heading": "try-except 구조",
+                    "text": "try 블록에서 오류가 발생하면 except 블록이 실행됩니다",
+                    "code": "try:\n    # 위험한 코드\nexcept Exception:\n    # 예외 처리"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "여러 예외 처리하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "다중 예외 처리 과제",
+                "content": "여러 종류의 예외를 처리하는 함수를 작성하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "다중 예외 설명",
+                "content": "여러 개의 except 블록을 사용할 수 있습니다"
+              },
+              "startCode": "def safe_divide(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return 'Cannot divide by zero'\n    except TypeError:\n        return 'Invalid input type'",
+              "testCode": "def safe_divide(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return 'Cannot divide by zero'\n    except TypeError:\n        return 'Invalid input type'\nassert safe_divide(10, 2) == 5.0 and safe_divide(10, 0) == 'Cannot divide by zero', '예외 처리가 올바르게 작동해야 합니다'",
+              "lecture": {
+                "character": "profKim",
+                "title": "다중 예외 처리",
+                "keyTakeaway": "서로 다른 예외에 대해 다른 처리를 할 수 있습니다",
+                "sandboxCode": "try:\n    num = int(input('숫자: '))\n    result = 10 / num\nexcept ValueError:\n    print('숫자를 입력하세요')\nexcept ZeroDivisionError:\n    print('0으로 나눌 수 없습니다')",
+                "sections": [
+                  {
+                    "heading": "여러 except 블록",
+                    "text": "예외 종류별로 다른 처리를 합니다",
+                    "code": "try:\n    # 코드\nexcept ValueError:\n    # ValueError 처리\nexcept ZeroDivisionError:\n    # ZeroDivisionError 처리"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 5,
+      "title": "5주차: 객체지향 프로그래밍",
+      "curLev": 2,
+      "cycles": [
+        {
+          "title": "클래스와 객체",
+          "filename": "classes.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "클래스 정의",
+              "syntax_comment": "객체의 틀을 정의합니다",
+              "syntax_code": "class Dog:\n    def __init__(self, name):\n        self.name = name"
+            },
+            {
+              "syntax_title": "메서드",
+              "syntax_comment": "클래스 내의 함수",
+              "syntax_code": "class Dog:\n    def bark(self):\n        print('Woof!')"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "간단한 클래스 만들기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "클래스 과제",
+                "content": "Person 클래스를 만들고 객체를 생성하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "클래스 설명",
+                "content": "class 키워드로 클래스를 정의하고 __init__에서 초기화합니다"
+              },
+              "startCode": "class Person:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\nperson1 = Person('Alice', 30)\nprint(person1.name)",
+              "testCode": "class Person:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\nperson1 = Person('Alice', 30)\nassert person1.name == 'Alice' and person1.age == 30, '객체가 올바르게 생성되어야 합니다'",
+              "lecture": {
+                "character": "profKim",
+                "title": "클래스와 객체",
+                "keyTakeaway": "클래스는 객체의 청사진이고, 객체는 클래스의 인스턴스입니다",
+                "sandboxCode": "class Car:\n    def __init__(self, color):\n        self.color = color\n\nmy_car = Car('blue')\nprint(my_car.color)",
+                "sections": [
+                  {
+                    "heading": "클래스 정의",
+                    "text": "class 키워드로 클래스를 정의합니다",
+                    "code": "class ClassName:\n    def __init__(self, param):\n        self.attribute = param"
+                  },
+                  {
+                    "heading": "객체 생성",
+                    "text": "클래스를 호출하여 객체를 생성합니다",
+                    "code": "obj = ClassName(value)"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "메서드 추가하기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "메서드 과제",
+                "content": "클래스에 메서드를 추가하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "메서드 설명",
+                "content": "메서드는 클래스 내의 함수입니다. self를 첫 번째 매개변수로 사용합니다"
+              },
+              "startCode": "class Calculator:\n    def add(self, a, b):\n        return a + b\n    \n    def subtract(self, a, b):\n        return a - b\n\ncalc = Calculator()\nresult = calc.add(10, 5)",
+              "testCode": "class Calculator:\n    def add(self, a, b):\n        return a + b\n    def subtract(self, a, b):\n        return a - b\ncalc = Calculator()\nassert calc.add(10, 5) == 15 and calc.subtract(10, 5) == 5, '메서드가 올바르게 작동해야 합니다'",
+              "lecture": {
+                "character": "profKim",
+                "title": "메서드",
+                "keyTakeaway": "메서드는 객체의 동작을 정의합니다",
+                "sandboxCode": "class Dog:\n    def __init__(self, name):\n        self.name = name\n    \n    def bark(self):\n        return f'{self.name}이 짖습니다'\n\ndog = Dog('Buddy')\nprint(dog.bark())",
+                "sections": [
+                  {
+                    "heading": "메서드 정의",
+                    "text": "self는 객체 자신을 가리킵니다",
+                    "code": "class MyClass:\n    def method(self, param):\n        return self.attribute + param"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            }
+          ]
+        },
+        {
+          "title": "상속과 다형성",
+          "filename": "inheritance.py",
+          "syntax_detail": [
+            {
+              "syntax_title": "상속",
+              "syntax_comment": "부모 클래스의 속성과 메서드를 상속받습니다",
+              "syntax_code": "class Animal:\n    def speak(self):\n        pass\n\nclass Dog(Animal):\n    def speak(self):\n        return 'Woof!'"
+            },
+            {
+              "syntax_title": "super() 함수",
+              "syntax_comment": "부모 클래스의 메서드를 호출합니다",
+              "syntax_code": "class Dog(Animal):\n    def __init__(self, name):\n        super().__init__()\n        self.name = name"
+            }
+          ],
+          "task": [
+            {
+              "mode": "easy",
+              "title": "기본 상속 만들기",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "상속 과제",
+                "content": "Vehicle 클래스를 상속받는 Car 클래스를 만드세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "상속 설명",
+                "content": "class Car(Vehicle)로 상속을 정의합니다"
+              },
+              "startCode": "class Vehicle:\n    def __init__(self, brand):\n        self.brand = brand\n\nclass Car(Vehicle):\n    def __init__(self, brand, model):\n        super().__init__(brand)\n        self.model = model\n\nmy_car = Car('Toyota', 'Camry')",
+              "testCode": "class Vehicle:\n    def __init__(self, brand):\n        self.brand = brand\nclass Car(Vehicle):\n    def __init__(self, brand, model):\n        super().__init__(brand)\n        self.model = model\nmy_car = Car('Toyota', 'Camry')\nassert my_car.brand == 'Toyota' and my_car.model == 'Camry', '상속이 올바르게 작동해야 합니다'",
+              "lecture": {
+                "character": "profKim",
+                "title": "상속",
+                "keyTakeaway": "상속으로 부모 클래스의 특성을 자식 클래스가 물려받습니다",
+                "sandboxCode": "class Animal:\n    def __init__(self, name):\n        self.name = name\n\nclass Dog(Animal):\n    def bark(self):\n        return 'Woof!'\n\ndog = Dog('Buddy')\nprint(dog.name)",
+                "sections": [
+                  {
+                    "heading": "상속 문법",
+                    "text": "괄호 안에 부모 클래스를 지정합니다",
+                    "code": "class Parent:\n    pass\n\nclass Child(Parent):\n    pass"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            },
+            {
+              "mode": "advance",
+              "title": "메서드 오버라이딩",
+              "assign": {
+                "character": "alex",
+                "subtitle": "팀장 지시",
+                "title": "오버라이딩 과제",
+                "content": "부모 메서드를 자식 클래스에서 재정의하세요"
+              },
+              "brief": {
+                "character": "sena",
+                "subtitle": "선임 힌트",
+                "title": "오버라이딩 설명",
+                "content": "자식 클래스에서 같은 이름의 메서드를 정의하면 부모 메서드를 덮어씁니다"
+              },
+              "startCode": "class Animal:\n    def speak(self):\n        return 'Some sound'\n\nclass Dog(Animal):\n    def speak(self):\n        return 'Woof!'\n\nclass Cat(Animal):\n    def speak(self):\n        return 'Meow!'\n\ndog = Dog()\ncat = Cat()",
+              "testCode": "class Animal:\n    def speak(self):\n        return 'Some sound'\nclass Dog(Animal):\n    def speak(self):\n        return 'Woof!'\nclass Cat(Animal):\n    def speak(self):\n        return 'Meow!'\ndog = Dog()\ncat = Cat()\nassert dog.speak() == 'Woof!' and cat.speak() == 'Meow!', '메서드 오버라이딩이 올바르게 작동해야 합니다'",
+              "lecture": {
+                "character": "profKim",
+                "title": "메서드 오버라이딩",
+                "keyTakeaway": "자식 클래스에서 부모 메서드를 재정의할 수 있습니다",
+                "sandboxCode": "class Shape:\n    def area(self):\n        pass\n\nclass Circle(Shape):\n    def __init__(self, radius):\n        self.radius = radius\n    \n    def area(self):\n        return 3.14 * self.radius ** 2",
+                "sections": [
+                  {
+                    "heading": "메서드 오버라이딩",
+                    "text": "같은 메서드명으로 다시 정의합니다",
+                    "code": "class Parent:\n    def method(self):\n        return 'Parent'\n\nclass Child(Parent):\n    def method(self):\n        return 'Child'"
+                  }
+                ]
+              },
+              "testcase": {
+                "inputText": "",
+                "expectedOutput": "",
+                "weight": 10
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
