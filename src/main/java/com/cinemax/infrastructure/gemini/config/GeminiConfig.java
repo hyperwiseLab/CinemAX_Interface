@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
 import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatOptions;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -43,9 +44,7 @@ public class GeminiConfig {
             log.info("Vertex AI initialized successfully.");
             return vertexAI;
         } catch (Exception e) {
-            log.warn("Vertex AI initialization failed. Gemini features will be disabled. Reason: {}", e.getMessage());
-            log.warn("Checked: GOOGLE_APPLICATION_CREDENTIALS={}, user.dir={}/keys.json",
-                    System.getenv("GOOGLE_APPLICATION_CREDENTIALS"), System.getProperty("user.dir"));
+            log.warn("Vertex AI 초기화 실패 - Gemini 기능이 비활성화됩니다. 원인: {}", e.getMessage());
             return null;
         }
     }
@@ -102,14 +101,10 @@ public class GeminiConfig {
         return credentials;
     }
 
-    // Gemini Chat Model Bean 생성
+    // Gemini Chat Model Bean 생성 (VertexAI Bean이 있을 때만 생성)
     @Bean
+    @ConditionalOnBean(VertexAI.class)
     public VertexAiGeminiChatModel vertexAiGeminiChatModel(VertexAI vertexAI) {
-        if (vertexAI == null) {
-            log.warn("VertexAI bean is null. GeminiChatModel will not be created.");
-            return null;
-        }
-
         VertexAiGeminiChatOptions options = VertexAiGeminiChatOptions.builder()
                 .withModel(properties.getModel())
                 .withTemperature(properties.getTemperature())
