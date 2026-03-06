@@ -9,7 +9,6 @@ import com.cinemax.infrastructure.gemini.exception.GeminiException;
 import com.cinemax.infrastructure.gemini.service.GeminiService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -19,6 +18,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
 import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatOptions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -31,14 +31,26 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class GeminiServiceImpl implements GeminiService {
 
-    private final VertexAiGeminiChatModel chatModel;
+    @Autowired(required = false)
+    private VertexAiGeminiChatModel chatModel;
+
     private final ObjectMapper objectMapper;
+
+    public GeminiServiceImpl(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    private void checkChatModel() {
+        if (chatModel == null) {
+            throw new GeminiException("Gemini 서비스를 사용할 수 없습니다. keys.json 설정을 확인하세요.");
+        }
+    }
 
     @Override
     public String generate(String prompt) {
+        checkChatModel();
         Prompt chatPrompt = new Prompt(prompt);
         ChatResponse response = chatModel.call(chatPrompt);
         String content = response.getResult().getOutput().getContent();
@@ -48,6 +60,7 @@ public class GeminiServiceImpl implements GeminiService {
 
     @Override
     public GeminiChatResponse chat(GeminiChatRequest request) {
+        checkChatModel();
         List<Message> messages = buildMessages(request);
 
         // 요청별 옵션 설정
@@ -69,6 +82,7 @@ public class GeminiServiceImpl implements GeminiService {
 
     @Override
     public Flux<GeminiStreamResponse> chatStream(GeminiChatRequest request) {
+        checkChatModel();
         List<Message> messages = buildMessages(request);
         Prompt prompt = new Prompt(messages);
 
@@ -80,6 +94,7 @@ public class GeminiServiceImpl implements GeminiService {
 
     @Override
     public GeminiChatResponse chatWithContext(List<ChatMessage> history, String userMessage) {
+        checkChatModel();
         List<Message> messages = new ArrayList<>();
 
         // 히스토리 추가
@@ -108,6 +123,7 @@ public class GeminiServiceImpl implements GeminiService {
      */
     @Override
     public String reviewCode(String code, String language) {
+        checkChatModel();
         String promptText = String.format(
                 """
                 다음 %s 코드를 리뷰해주세요.
@@ -136,6 +152,7 @@ public class GeminiServiceImpl implements GeminiService {
 
     @Override
     public String generateFeedback(String studentCode, String expectedOutput, String rubric) {
+        checkChatModel();
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("학생이 작성한 코드에 대한 피드백을 생성해주세요.\n\n");
         promptBuilder.append("학생 코드:\n```\n").append(studentCode).append("\n```\n\n");
@@ -163,6 +180,7 @@ public class GeminiServiceImpl implements GeminiService {
 
     @Override
     public StructuredAnalysisResponse generateStructuredAnalysis(String studentCode, String expectedOutput, String rubric) throws JsonProcessingException {
+        checkChatModel();
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("학생이 작성한 코드를 분석하고 **반드시 JSON 형식으로만** 응답해주세요.\n\n");
         promptBuilder.append("학생 코드:\n```\n").append(studentCode).append("\n```\n\n");
