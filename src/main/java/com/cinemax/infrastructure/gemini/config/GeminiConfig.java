@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
 import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatOptions;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -101,10 +101,14 @@ public class GeminiConfig {
         return credentials;
     }
 
-    // Gemini Chat Model Bean 생성 (VertexAI Bean이 있을 때만 생성)
+    // Gemini Chat Model Bean 생성 (VertexAI가 null이면 null 반환)
     @Bean
-    @ConditionalOnBean(VertexAI.class)
-    public VertexAiGeminiChatModel vertexAiGeminiChatModel(VertexAI vertexAI) {
+    public VertexAiGeminiChatModel vertexAiGeminiChatModel(
+            @Autowired(required = false) VertexAI vertexAI) {
+        if (vertexAI == null) {
+            log.warn("VertexAI Bean 없음 - Gemini ChatModel 생성을 건너뜁니다.");
+            return null;
+        }
         VertexAiGeminiChatOptions options = VertexAiGeminiChatOptions.builder()
                 .withModel(properties.getModel())
                 .withTemperature(properties.getTemperature())
