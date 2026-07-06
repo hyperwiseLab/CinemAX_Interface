@@ -60,7 +60,7 @@ public class TestCaseRequest {
     )
     private String inputText;
 
-    @NotBlank(message = "예상 출력은 필수입니다.")
+    @NotNull(message = "예상 출력은 필수입니다. (출력 비교가 없는 경우 빈 문자열 \"\" 사용)")
     @Schema(
             description = """
                     학생 코드가 출력해야 하는 정답 값
