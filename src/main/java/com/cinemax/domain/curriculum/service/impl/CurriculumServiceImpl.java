@@ -10,6 +10,9 @@ import com.cinemax.domain.curriculum.repository.CurriculumRepository;
 import com.cinemax.domain.curriculum.repository.CurriculumWeekRepository;
 import com.cinemax.domain.curriculum.service.CurriculumService;
 import com.cinemax.domain.classes.repository.ClassEntityRepository;
+import com.cinemax.domain.cycle.entity.Cycle;
+import com.cinemax.domain.cycle.repository.CycleRepository;
+import com.cinemax.domain.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,8 @@ public class CurriculumServiceImpl implements CurriculumService {
     private final CurriculumRepository curriculumRepository;
     private final CurriculumWeekRepository curriculumWeekRepository;
     private final ClassEntityRepository classEntityRepository;
+    private final CycleRepository cycleRepository;
+    private final TaskRepository taskRepository;
 
     // 커리큘럼 생성 요청
     @Override
@@ -134,7 +139,15 @@ public class CurriculumServiceImpl implements CurriculumService {
         // 주차별 커리큘럼 수정 (기존 데이터 삭제 후 재생성)
         if (request.getCurriculumWeeks() != null && !request.getCurriculumWeeks().isEmpty()) {
             // 기존 주차별 커리큘럼 삭제
+            // FK 제약(week <- cycle <- task) 때문에 자식(task -> cycle)부터 삭제 후 week 삭제
             List<CurriculumWeek> existingWeeks = curriculumWeekRepository.findByCurId(curId);
+            for (CurriculumWeek existingWeek : existingWeeks) {
+                List<Cycle> cycles = cycleRepository.findByCurWeekId(existingWeek.getCurWeekId());
+                for (Cycle cycle : cycles) {
+                    taskRepository.deleteAll(taskRepository.findByCycleId(cycle.getCycleId()));
+                }
+                cycleRepository.deleteAll(cycles);
+            }
             curriculumWeekRepository.deleteAll(existingWeeks);
 
             // 새로운 주차별 커리큘럼 생성
