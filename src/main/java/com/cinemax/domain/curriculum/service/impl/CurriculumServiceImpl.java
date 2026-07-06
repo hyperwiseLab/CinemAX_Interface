@@ -139,16 +139,19 @@ public class CurriculumServiceImpl implements CurriculumService {
         // 주차별 커리큘럼 수정 (기존 데이터 삭제 후 재생성)
         if (request.getCurriculumWeeks() != null && !request.getCurriculumWeeks().isEmpty()) {
             // 기존 주차별 커리큘럼 삭제
-            // FK 제약(week <- cycle <- task) 때문에 자식(task -> cycle)부터 삭제 후 week 삭제
+            // FK 제약(week <- cycle <- task) 때문에 자식(task -> cycle)부터 삭제 후 week 삭제.
+            // deleteAllInBatch 는 영속성 컨텍스트 flush 지연 없이 즉시 DELETE 를 실행하므로
+            // 호출 순서대로 SQL 이 나가 FK 순서가 보장됨. (deleteAll 은 flush 시점에 타입별로
+            // 정렬되어 week DELETE 가 cycle DELETE 보다 먼저 나가 FK 위반이 발생할 수 있음)
             List<CurriculumWeek> existingWeeks = curriculumWeekRepository.findByCurId(curId);
             for (CurriculumWeek existingWeek : existingWeeks) {
                 List<Cycle> cycles = cycleRepository.findByCurWeekId(existingWeek.getCurWeekId());
                 for (Cycle cycle : cycles) {
-                    taskRepository.deleteAll(taskRepository.findByCycleId(cycle.getCycleId()));
+                    taskRepository.deleteAllInBatch(taskRepository.findByCycleId(cycle.getCycleId()));
                 }
-                cycleRepository.deleteAll(cycles);
+                cycleRepository.deleteAllInBatch(cycles);
             }
-            curriculumWeekRepository.deleteAll(existingWeeks);
+            curriculumWeekRepository.deleteAllInBatch(existingWeeks);
 
             // 새로운 주차별 커리큘럼 생성
             for (CurriculumWeekRequest weekRequest : request.getCurriculumWeeks()) {
