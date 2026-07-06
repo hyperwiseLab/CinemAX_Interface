@@ -205,6 +205,21 @@ public class CurriculumServiceImpl implements CurriculumService {
         Curriculum curriculum = curriculumRepository.findById(curId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_CURRICULUM + curId));
 
+        // FK 제약(week <- cycle <- task) 때문에 자식(task -> cycle -> week)부터 즉시 삭제.
+        // Curriculum.curriculumWeeks 는 orphanRemoval=true 라 delete 시 week 를 자동 삭제하려 하지만
+        // 그 하위 cycle/task 는 연관관계가 없어 지워지지 않아 FK 위반이 발생하므로 수동으로 먼저 삭제.
+        List<CurriculumWeek> weeks = curriculumWeekRepository.findByCurId(curId);
+        for (CurriculumWeek week : weeks) {
+            List<Cycle> cycles = cycleRepository.findByCurWeekId(week.getCurWeekId());
+            for (Cycle cycle : cycles) {
+                taskRepository.deleteAllInBatch(taskRepository.findByCycleId(cycle.getCycleId()));
+            }
+            cycleRepository.deleteAllInBatch(cycles);
+        }
+        curriculumWeekRepository.deleteAllInBatch(weeks);
+
+        // 위에서 week 를 벌크 삭제했으므로 orphanRemoval 이 이미 삭제된 week 를 다시 지우려는 것을 방지
+        curriculum.getCurriculumWeeks().clear();
         curriculumRepository.delete(curriculum);
     }
 
