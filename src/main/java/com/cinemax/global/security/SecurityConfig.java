@@ -138,6 +138,7 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://localhost:3001",
                 "http://175.126.37.175:3001",
+                "http://221.148.101.200:3004",
                 "http://cinema-x.kr",
                 "https://cinema-x.kr"
         ));
