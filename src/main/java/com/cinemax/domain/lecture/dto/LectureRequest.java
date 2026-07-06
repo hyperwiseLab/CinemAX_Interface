@@ -49,7 +49,7 @@ public class LectureRequest {
     @Schema(description = "주요 요약 내용", example = "`print()` 함수는 괄호 안의 내용을 화면에 보여주는 가장 기본적인 명령입니다.")
     private String keyTakeaway;
 
-    @NotBlank(message = "Sandbox Code는 필수입니다")
+    // 샌드박스 코드는 선택 항목 (강의에 실행 코드가 없을 수 있음)
     @Schema(description = "샌드박스 코드", example = "print(\"파이썬, 반가워!\")")
     private String sandboxCode;
 
