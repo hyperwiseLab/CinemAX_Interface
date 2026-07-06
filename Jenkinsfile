@@ -17,7 +17,7 @@ pipeline {
                 }
             }
             steps {
-                sh 'docker build --network host -t ${IMAGE_NAME}:latest .'
+                sh 'docker build --no-cache --network host -t ${IMAGE_NAME}:latest .'
             }
         }
         stage('Deploy') {
