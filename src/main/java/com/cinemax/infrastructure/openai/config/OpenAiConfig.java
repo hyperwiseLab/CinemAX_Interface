@@ -33,11 +33,10 @@ public class OpenAiConfig {
 
         OpenAiApi openAiApi = new OpenAiApi(apiKey);
 
+        // gpt-5 계열은 temperature/top_p 커스텀 값을 거부(기본값만 허용)하므로 설정하지 않음
         OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .withModel(properties.getModel())
-                .withTemperature(properties.getTemperature())
-                .withMaxTokens(properties.getMaxTokens())
-                .withTopP(properties.getTopP())
+                .withMaxCompletionTokens(properties.getMaxTokens())
                 .build();
 
         log.info("OpenAI ChatModel initialized successfully. model={}", properties.getModel());

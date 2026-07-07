@@ -63,13 +63,10 @@ public class OpenAiServiceImpl implements OpenAiService {
         checkChatModel();
         List<Message> messages = buildMessages(request);
 
-        // 요청별 옵션 설정
+        // 요청별 옵션 설정 (gpt-5 계열은 temperature 커스텀 값 미지원 → maxCompletionTokens만 적용)
         OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder();
-        if (request.getTemperature() != null) {
-            optionsBuilder.withTemperature(request.getTemperature());
-        }
         if (request.getMaxTokens() != null) {
-            optionsBuilder.withMaxTokens(request.getMaxTokens());
+            optionsBuilder.withMaxCompletionTokens(request.getMaxTokens());
         }
 
         Prompt prompt = new Prompt(messages, optionsBuilder.build());
@@ -208,12 +205,8 @@ public class OpenAiServiceImpl implements OpenAiService {
                 주의: JSON 형식만 반환하고, 다른 텍스트나 마크다운은 포함하지 마세요.
                 """);
 
-        // 일관성 있는 JSON 응답을 위해 낮은 temperature 사용
-        OpenAiChatOptions options = OpenAiChatOptions.builder()
-                .withTemperature(0.3)
-                .build();
-
-        Prompt prompt = new Prompt(promptBuilder.toString(), options);
+        // gpt-5 계열은 temperature 커스텀 값 미지원 → 전역 옵션(모델 기본 설정) 사용
+        Prompt prompt = new Prompt(promptBuilder.toString());
         ChatResponse response = chatModel.call(prompt);
 
         String content = response.getResult().getOutput().getContent();
