@@ -79,6 +79,14 @@ public class ProgressServiceImpl implements ProgressService {
         return ProgressResponse.from(progress);
     }
 
+    // 진도 조회 (없으면 null - 아직 시작하지 않은 학생은 진도가 없는 것이 정상)
+    @Override
+    public ProgressResponse getProgressOrNull(Long weeklySessionId, Long userId) {
+        return progressRepository.findByWeeklySessionIdAndUserId(weeklySessionId, userId)
+                .map(ProgressResponse::from)
+                .orElse(null);
+    }
+
     // 주차별 수업 모든 진도 조회
     @Override
     public List<ProgressResponse> getAllProgressByWeeklySession(Long weeklySessionId) {

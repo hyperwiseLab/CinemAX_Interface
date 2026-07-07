@@ -80,7 +80,8 @@ public class ProgressController extends BaseController {
             throw new IllegalArgumentException("인증 정보가 없습니다.");
         }
 
-        ProgressResponse response = progressService.getProgress(weeklySessionId, userId);
+        // 아직 시작하지 않은 학생은 진도가 없는 것이 정상이므로 null(200)로 응답
+        ProgressResponse response = progressService.getProgressOrNull(weeklySessionId, userId);
 
         return success(response, "내 진도를 조회했습니다.");
     }

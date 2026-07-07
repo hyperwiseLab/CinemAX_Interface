@@ -20,6 +20,9 @@ public interface ProgressService {
     // 진도 조회 (특정 학생의 특정 주차 진도)
     ProgressResponse getProgress(Long weeklySessionId, Long userId);
 
+    // 진도 조회 (없으면 null 반환 - 아직 시작하지 않은 정상 케이스)
+    ProgressResponse getProgressOrNull(Long weeklySessionId, Long userId);
+
     // 주차별 수업의 모든 학생 진도 조회
     List<ProgressResponse> getAllProgressByWeeklySession(Long weeklySessionId);
 
