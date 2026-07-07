@@ -1,4 +1,4 @@
-package com.cinemax.infrastructure.gemini.dto.request;
+package com.cinemax.infrastructure.openai.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

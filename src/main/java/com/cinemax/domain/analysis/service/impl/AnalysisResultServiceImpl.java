@@ -298,20 +298,21 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
         double averageCompletionTokens = totalAnalyses > 0 ? (double) totalCompletionTokens / totalAnalyses : 0.0;
         double averageTokensPerAnalysis = totalAnalyses > 0 ? (double) totalTokens / totalAnalyses : 0.0;
 
-        // 비용 추정 (Gemini 2.5 Flash 기준 - 참고용)
-        double inputCost = (totalPromptTokens / 1_000_000.0) * 0.075;
-        double outputCost = (totalCompletionTokens / 1_000_000.0) * 0.30;
+        // 비용 추정 (gpt-5-mini 기준 - 참고용)
+        // TODO: OpenAI 콘솔의 gpt-5-mini 실제 단가($/1M tokens)로 확인 후 조정
+        double inputCost = (totalPromptTokens / 1_000_000.0) * 0.25;
+        double outputCost = (totalCompletionTokens / 1_000_000.0) * 2.00;
         double totalCost = inputCost + outputCost;
 
         CostEstimate costEstimate = CostEstimate.builder()
                 .estimatedCostUSD(totalCost)
-                .pricingModel("Gemini 2.5 Flash")
-                .note("추정 비용입니다. 실제 비용은 Google Cloud 콘솔에서 확인하세요.")
+                .pricingModel("gpt-5-mini")
+                .note("추정 비용입니다. 실제 비용은 OpenAI 콘솔에서 확인하세요.")
                 .build();
 
-        // 모델별 사용량 (간단히 전체를 gemini-2.5-flash로 가정)
+        // 모델별 사용량 (간단히 전체를 gpt-5-mini로 가정)
         ModelTokenUsage modelTokenUsage = ModelTokenUsage.builder()
-                .modelVersion("gemini-2.5-flash")
+                .modelVersion("gpt-5-mini")
                 .analysisCount(totalAnalyses)
                 .totalTokens(totalTokens)
                 .averageTokens(averageTokensPerAnalysis)
@@ -352,19 +353,20 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
         double averageCompletionTokens = totalAnalyses > 0 ? (double) totalCompletionTokens / totalAnalyses : 0.0;
         double averageTokensPerAnalysis = totalAnalyses > 0 ? (double) totalTokens / totalAnalyses : 0.0;
 
-        // 비용 추정
-        double inputCost = (totalPromptTokens / 1_000_000.0) * 0.075;
-        double outputCost = (totalCompletionTokens / 1_000_000.0) * 0.30;
+        // 비용 추정 (gpt-5-mini 기준 - 참고용)
+        // TODO: OpenAI 콘솔의 gpt-5-mini 실제 단가($/1M tokens)로 확인 후 조정
+        double inputCost = (totalPromptTokens / 1_000_000.0) * 0.25;
+        double outputCost = (totalCompletionTokens / 1_000_000.0) * 2.00;
         double totalCost = inputCost + outputCost;
 
         CostEstimate costEstimate = CostEstimate.builder()
                 .estimatedCostUSD(totalCost)
-                .pricingModel("Gemini 2.5 Flash")
-                .note("추정 비용입니다. 실제 비용은 Google Cloud 콘솔에서 확인하세요.")
+                .pricingModel("gpt-5-mini")
+                .note("추정 비용입니다. 실제 비용은 OpenAI 콘솔에서 확인하세요.")
                 .build();
 
         ModelTokenUsage modelTokenUsage = ModelTokenUsage.builder()
-                .modelVersion("gemini-2.5-flash")
+                .modelVersion("gpt-5-mini")
                 .analysisCount(totalAnalyses)
                 .totalTokens(totalTokens)
                 .averageTokens(averageTokensPerAnalysis)

@@ -1,4 +1,4 @@
-package com.cinemax.infrastructure.gemini.dto.response;
+package com.cinemax.infrastructure.openai.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * 구조화된 AI 분석 응답 DTO
- * Gemini에서 JSON 형식으로 응답받을 때 사용
+ * OpenAI에서 JSON 형식으로 응답받을 때 사용
  */
 @Getter
 @Builder

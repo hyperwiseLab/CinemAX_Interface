@@ -1,4 +1,4 @@
-package com.cinemax.infrastructure.gemini.dto.request;
+package com.cinemax.infrastructure.openai.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -9,13 +9,13 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Gemini 채팅 요청 DTO
+ * OpenAI 채팅 요청 DTO
  */
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GeminiChatRequest {
+public class OpenAiChatRequest {
 
     // 사용자 메시지
     @NotBlank(message = "메시지는 필수입니다")

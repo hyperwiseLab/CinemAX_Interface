@@ -1,4 +1,4 @@
-package com.cinemax.infrastructure.gemini.dto.response;
+package com.cinemax.infrastructure.openai.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,13 +9,13 @@ import org.springframework.ai.chat.model.ChatResponse;
 import java.time.LocalDateTime;
 
 /**
- * Gemini 스트리밍 응답 DTO
+ * OpenAI 스트리밍 응답 DTO
  */
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GeminiStreamResponse {
+public class OpenAiStreamResponse {
 
     // 생성된 텍스트 청크
     private String content;
@@ -32,11 +32,11 @@ public class GeminiStreamResponse {
     private LocalDateTime timestamp;
 
     /**
-     * ChatResponse에서 GeminiStreamResponse로 변환
+     * ChatResponse에서 OpenAiStreamResponse로 변환
      */
-    public static GeminiStreamResponse from(ChatResponse chatResponse) {
+    public static OpenAiStreamResponse from(ChatResponse chatResponse) {
         if (chatResponse == null || chatResponse.getResults().isEmpty()) {
-            return GeminiStreamResponse.builder()
+            return OpenAiStreamResponse.builder()
                     .content("")
                     .done(true)
                     .timestamp(LocalDateTime.now())
@@ -46,7 +46,7 @@ public class GeminiStreamResponse {
         var result = chatResponse.getResult();
         String finishReason = result.getMetadata().getFinishReason();
 
-        return GeminiStreamResponse.builder()
+        return OpenAiStreamResponse.builder()
                 .content(result.getOutput().getContent())
                 .done(finishReason != null && !finishReason.isEmpty())
                 .finishReason(finishReason)

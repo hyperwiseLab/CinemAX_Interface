@@ -1,4 +1,4 @@
-package com.cinemax.infrastructure.gemini.dto.response;
+package com.cinemax.infrastructure.openai.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,13 +11,13 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
- * Gemini 채팅 응답 DTO
+ * OpenAI 채팅 응답 DTO
  */
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GeminiChatResponse {
+public class OpenAiChatResponse {
 
     // 생성된 텍스트
     private String content;
@@ -34,10 +34,10 @@ public class GeminiChatResponse {
     // 응답 생성 시간
     private LocalDateTime timestamp;
 
-    // ChatResponse에서 GeminiChatResponse로 변환
-    public static GeminiChatResponse from(ChatResponse chatResponse) {
+    // ChatResponse에서 OpenAiChatResponse로 변환
+    public static OpenAiChatResponse from(ChatResponse chatResponse) {
         if (chatResponse == null || chatResponse.getResults().isEmpty()) {
-            return GeminiChatResponse.builder()
+            return OpenAiChatResponse.builder()
                     .content("")
                     .timestamp(LocalDateTime.now())
                     .build();
@@ -45,7 +45,7 @@ public class GeminiChatResponse {
 
         Generation result = chatResponse.getResult();
 
-        return GeminiChatResponse.builder()
+        return OpenAiChatResponse.builder()
                 .content(result.getOutput().getContent())
                 .finishReason(result.getMetadata().getFinishReason())
                 .tokenUsage(TokenUsageResponse.from(chatResponse))

@@ -1,12 +1,12 @@
-package com.cinemax.infrastructure.gemini.service.impl;
+package com.cinemax.infrastructure.openai.service.impl;
 
-import com.cinemax.infrastructure.gemini.dto.request.ChatMessage;
-import com.cinemax.infrastructure.gemini.dto.request.GeminiChatRequest;
-import com.cinemax.infrastructure.gemini.dto.response.GeminiChatResponse;
-import com.cinemax.infrastructure.gemini.dto.response.GeminiStreamResponse;
-import com.cinemax.infrastructure.gemini.dto.response.StructuredAnalysisResponse;
-import com.cinemax.infrastructure.gemini.exception.GeminiException;
-import com.cinemax.infrastructure.gemini.service.GeminiService;
+import com.cinemax.infrastructure.openai.dto.request.ChatMessage;
+import com.cinemax.infrastructure.openai.dto.request.OpenAiChatRequest;
+import com.cinemax.infrastructure.openai.dto.response.OpenAiChatResponse;
+import com.cinemax.infrastructure.openai.dto.response.OpenAiStreamResponse;
+import com.cinemax.infrastructure.openai.dto.response.StructuredAnalysisResponse;
+import com.cinemax.infrastructure.openai.exception.OpenAiException;
+import com.cinemax.infrastructure.openai.service.OpenAiService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +14,10 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
-import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatOptions;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -27,24 +27,24 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Gemini AI 서비스 구현체
+ * OpenAI 서비스 구현체
  */
 @Slf4j
 @Service
-public class GeminiServiceImpl implements GeminiService {
+public class OpenAiServiceImpl implements OpenAiService {
 
     @Autowired(required = false)
-    private VertexAiGeminiChatModel chatModel;
+    private ChatModel chatModel;
 
     private final ObjectMapper objectMapper;
 
-    public GeminiServiceImpl(ObjectMapper objectMapper) {
+    public OpenAiServiceImpl(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     private void checkChatModel() {
         if (chatModel == null) {
-            throw new GeminiException("Gemini 서비스를 사용할 수 없습니다. keys.json 설정을 확인하세요.");
+            throw new OpenAiException("AI 서비스를 사용할 수 없습니다. OpenAI API 키(openai.api-key) 설정을 확인하세요.");
         }
     }
 
@@ -59,41 +59,41 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     @Override
-    public GeminiChatResponse chat(GeminiChatRequest request) {
+    public OpenAiChatResponse chat(OpenAiChatRequest request) {
         checkChatModel();
         List<Message> messages = buildMessages(request);
 
         // 요청별 옵션 설정
-        VertexAiGeminiChatOptions.Builder optionsBuilder = VertexAiGeminiChatOptions.builder();
+        OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder();
         if (request.getTemperature() != null) {
             optionsBuilder.withTemperature(request.getTemperature());
         }
         if (request.getMaxTokens() != null) {
-            optionsBuilder.withMaxOutputTokens(request.getMaxTokens());
+            optionsBuilder.withMaxTokens(request.getMaxTokens());
         }
 
         Prompt prompt = new Prompt(messages, optionsBuilder.build());
         ChatResponse response = chatModel.call(prompt);
 
-        GeminiChatResponse chatResponse = GeminiChatResponse.from(response);
+        OpenAiChatResponse chatResponse = OpenAiChatResponse.from(response);
 
         return chatResponse;
     }
 
     @Override
-    public Flux<GeminiStreamResponse> chatStream(GeminiChatRequest request) {
+    public Flux<OpenAiStreamResponse> chatStream(OpenAiChatRequest request) {
         checkChatModel();
         List<Message> messages = buildMessages(request);
         Prompt prompt = new Prompt(messages);
 
         return chatModel.stream(prompt)
-                .map(GeminiStreamResponse::from)
+                .map(OpenAiStreamResponse::from)
                 .doOnComplete(() -> log.debug("Streaming completed"))
                 .doOnError(e -> log.error("Streaming error", e));
     }
 
     @Override
-    public GeminiChatResponse chatWithContext(List<ChatMessage> history, String userMessage) {
+    public OpenAiChatResponse chatWithContext(List<ChatMessage> history, String userMessage) {
         checkChatModel();
         List<Message> messages = new ArrayList<>();
 
@@ -110,7 +110,7 @@ public class GeminiServiceImpl implements GeminiService {
         Prompt prompt = new Prompt(messages);
         ChatResponse response = chatModel.call(prompt);
 
-        return GeminiChatResponse.from(response);
+        return OpenAiChatResponse.from(response);
     }
 
     /*
@@ -209,7 +209,7 @@ public class GeminiServiceImpl implements GeminiService {
                 """);
 
         // 일관성 있는 JSON 응답을 위해 낮은 temperature 사용
-        VertexAiGeminiChatOptions options = VertexAiGeminiChatOptions.builder()
+        OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .withTemperature(0.3)
                 .build();
 
@@ -227,7 +227,7 @@ public class GeminiServiceImpl implements GeminiService {
         return structuredResponse;
     }
 
-    // Gemini 응답에서 JSON 추출
+    // OpenAI 응답에서 JSON 추출
     private String extractJsonFromResponse(String response) {
         // 마크다운 코드 블록 제거
         String cleaned = response.trim();
@@ -256,8 +256,8 @@ public class GeminiServiceImpl implements GeminiService {
         return cleaned;
     }
 
-    // GeminiChatRequest로부터 Message 리스트 생성
-    private List<Message> buildMessages(GeminiChatRequest request) {
+    // OpenAiChatRequest로부터 Message 리스트 생성
+    private List<Message> buildMessages(OpenAiChatRequest request) {
         List<Message> messages = new ArrayList<>();
 
         // 시스템 프롬프트 추가

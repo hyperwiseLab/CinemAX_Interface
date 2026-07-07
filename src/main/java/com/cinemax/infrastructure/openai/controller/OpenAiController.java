@@ -1,12 +1,12 @@
-package com.cinemax.infrastructure.gemini.controller;
+package com.cinemax.infrastructure.openai.controller;
 
 import com.cinemax.core.controller.BaseController;
 import com.cinemax.core.dto.response.ApiResponse;
-import com.cinemax.infrastructure.gemini.dto.request.GeminiChatRequest;
-import com.cinemax.infrastructure.gemini.dto.response.GeminiChatResponse;
-import com.cinemax.infrastructure.gemini.dto.response.GeminiStreamResponse;
-import com.cinemax.infrastructure.gemini.dto.response.StructuredAnalysisResponse;
-import com.cinemax.infrastructure.gemini.service.GeminiService;
+import com.cinemax.infrastructure.openai.dto.request.OpenAiChatRequest;
+import com.cinemax.infrastructure.openai.dto.response.OpenAiChatResponse;
+import com.cinemax.infrastructure.openai.dto.response.OpenAiStreamResponse;
+import com.cinemax.infrastructure.openai.dto.response.StructuredAnalysisResponse;
+import com.cinemax.infrastructure.openai.service.OpenAiService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,16 +22,16 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 /**
- * Gemini AI API 컨트롤러
+ * OpenAI API 컨트롤러
  */
 @Slf4j
 @RestController
-@RequestMapping("/gemini")
+@RequestMapping("/openai")
 @RequiredArgsConstructor
-@Tag(name = "Gemini AI", description = "Gemini AI 관련 API")
-public class GeminiController extends BaseController {
+@Tag(name = "OpenAI", description = "OpenAI 관련 API")
+public class OpenAiController extends BaseController {
 
-    private final GeminiService geminiService;
+    private final OpenAiService openAiService;
 
     // 단순 텍스트 생성
     @PostMapping("/generate")
@@ -39,7 +39,7 @@ public class GeminiController extends BaseController {
     @Operation(summary = "텍스트 생성", description = "프롬프트를 기반으로 텍스트를 생성합니다.")
     public ResponseEntity<ApiResponse<String>> generate(@Parameter(description = "프롬프트") @RequestParam String prompt) {
 
-        String result = geminiService.generate(prompt);
+        String result = openAiService.generate(prompt);
 
         return success(result, "텍스트 생성 완료");
     }
@@ -47,10 +47,10 @@ public class GeminiController extends BaseController {
     // 채팅 요청
     @PostMapping("/chat")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
-    @Operation(summary = "채팅", description = "Gemini와 채팅합니다.")
-    public ResponseEntity<ApiResponse<GeminiChatResponse>> chat(@Valid @RequestBody GeminiChatRequest request) {
+    @Operation(summary = "채팅", description = "OpenAI와 채팅합니다.")
+    public ResponseEntity<ApiResponse<OpenAiChatResponse>> chat(@Valid @RequestBody OpenAiChatRequest request) {
 
-        GeminiChatResponse response = geminiService.chat(request);
+        OpenAiChatResponse response = openAiService.chat(request);
 
         return success(response, "채팅 완료");
     }
@@ -58,11 +58,11 @@ public class GeminiController extends BaseController {
     // 스트리밍 채팅 요청
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
-    @Operation(summary = "스트리밍 채팅", description = "Gemini와 스트리밍 채팅합니다.")
-    public Flux<ServerSentEvent<GeminiStreamResponse>> chatStream(@Valid @RequestBody GeminiChatRequest request) {
+    @Operation(summary = "스트리밍 채팅", description = "OpenAI와 스트리밍 채팅합니다.")
+    public Flux<ServerSentEvent<OpenAiStreamResponse>> chatStream(@Valid @RequestBody OpenAiChatRequest request) {
 
-        return geminiService.chatStream(request)
-                .map(response -> ServerSentEvent.<GeminiStreamResponse>builder()
+        return openAiService.chatStream(request)
+                .map(response -> ServerSentEvent.<OpenAiStreamResponse>builder()
                         .data(response)
                         .build())
                 .doOnComplete(() -> log.info("Streaming completed"))
@@ -76,7 +76,7 @@ public class GeminiController extends BaseController {
     public ResponseEntity<ApiResponse<String>> reviewCode(@Parameter(description = "소스 코드") @RequestParam String code,
                                                           @Parameter(description = "프로그래밍 언어") @RequestParam String language) {
 
-        String review = geminiService.reviewCode(code, language);
+        String review = openAiService.reviewCode(code, language);
 
         return success(review, "코드 리뷰 완료");
     }
@@ -89,7 +89,7 @@ public class GeminiController extends BaseController {
                                                                 @Parameter(description = "기대 출력") @RequestParam String expectedOutput,
                                                                 @Parameter(description = "채점 기준 (선택)") @RequestParam(required = false) String rubric) {
 
-        String feedback = geminiService.generateFeedback(studentCode, expectedOutput, rubric);
+        String feedback = openAiService.generateFeedback(studentCode, expectedOutput, rubric);
 
         return success(feedback, "피드백 생성 완료");
     }
@@ -102,18 +102,18 @@ public class GeminiController extends BaseController {
                                                                                                                                               @Parameter(description = "기대 출력") @RequestParam String expectedOutput,
                                                                                                                                               @Parameter(description = "채점 기준 (선택)") @RequestParam(required = false) String rubric) throws JsonProcessingException {
 
-        StructuredAnalysisResponse analysis = geminiService.generateStructuredAnalysis(studentCode, expectedOutput, rubric);
+        StructuredAnalysisResponse analysis = openAiService.generateStructuredAnalysis(studentCode, expectedOutput, rubric);
 
         return success(analysis, "구조화된 분석 완료");
     }
 
     // 간단한 테스트 엔드포인트 (인증 불필요)
     @PostMapping("/test")
-    @Operation(summary = "Gemini API 테스트", description = "Gemini API가 정상 작동하는지 간단히 테스트합니다.")
+    @Operation(summary = "OpenAI API 테스트", description = "OpenAI API가 정상 작동하는지 간단히 테스트합니다.")
     public ResponseEntity<ApiResponse<String>> test(@Parameter(description = "테스트 메시지") @RequestParam(defaultValue = "안녕하세요! 간단한 인사 부탁드립니다.") String message) {
 
-        String result = geminiService.generate(message);
+        String result = openAiService.generate(message);
 
-        return success(result, "Gemini API 테스트 완료");
+        return success(result, "OpenAI API 테스트 완료");
     }
 }
