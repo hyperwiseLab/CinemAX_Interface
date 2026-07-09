@@ -34,7 +34,8 @@ public class Task extends BaseTimeEntity {
     @Column(name = "TASK_MODE")
     private TaskMode taskMode;
 
-    @Column(name = "START_CODE", columnDefinition = "JSON")
+    // 실제 DB 컬럼은 mediumtext(문자열). 코드 원본을 그대로 저장한다.
+    @Column(name = "START_CODE", columnDefinition = "mediumtext")
     private String startCode;
 
     @Column(name = "CONFIG_JSON", columnDefinition = "JSON")
