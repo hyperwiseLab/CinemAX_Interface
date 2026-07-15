@@ -12,8 +12,8 @@ pipeline {
         stage('Build Docker Image') {
             when {
                 anyOf {
-                    branch 'release'
-                    expression { env.GIT_BRANCH == 'origin/release' }
+                    branch 'develop'
+                    expression { env.GIT_BRANCH == 'origin/develop' }
                 }
             }
             steps {
@@ -23,8 +23,8 @@ pipeline {
         stage('Deploy') {
             when {
                 anyOf {
-                    branch 'release'
-                    expression { env.GIT_BRANCH == 'origin/release' }
+                    branch 'develop'
+                    expression { env.GIT_BRANCH == 'origin/develop' }
                 }
             }
             steps {
