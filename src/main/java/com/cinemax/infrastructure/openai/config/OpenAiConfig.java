@@ -9,6 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * OpenAI 설정 클래스
@@ -31,7 +34,14 @@ public class OpenAiConfig {
             return null;
         }
 
-        OpenAiApi openAiApi = new OpenAiApi(apiKey);
+        // 퀴즈 대량 생성 등 응답이 오래 걸리는 호출을 위해 read timeout 을 넉넉히 설정
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(30_000);
+        requestFactory.setReadTimeout(180_000);
+        RestClient.Builder restClientBuilder = RestClient.builder().requestFactory(requestFactory);
+
+        OpenAiApi openAiApi = new OpenAiApi("https://api.openai.com", apiKey,
+                restClientBuilder, WebClient.builder());
 
         // gpt-5 계열은 temperature/top_p 커스텀 값을 거부(기본값만 허용)하므로 설정하지 않음
         OpenAiChatOptions options = OpenAiChatOptions.builder()

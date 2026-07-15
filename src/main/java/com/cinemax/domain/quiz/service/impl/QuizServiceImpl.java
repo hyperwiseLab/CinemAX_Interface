@@ -40,8 +40,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -85,22 +89,46 @@ public class QuizServiceImpl implements QuizService {
                         WeeklySession::getWeeklySessionId,
                         (a, b) -> a));
 
-        List<Quiz> savedQuizzes = new ArrayList<>();
+        // 1) 주차 시나리오 aggregate (DB 조회 → 메인 스레드에서 순차, 빠름)
+        Map<Integer, String> scenarioByWeek = new LinkedHashMap<>();
+        for (QuizGenerateRequest.WeekSpec spec : request.getWeeks()) {
+            scenarioByWeek.put(spec.getWeekNo(), scenarioAggregator.aggregate(curId, spec.getWeekNo()));
+        }
 
+        // 2) AI 생성은 주차별 병렬 호출 (느린 부분만 병렬화)
+        ExecutorService executor = Executors.newFixedThreadPool(
+                Math.min(request.getWeeks().size(), 12));
+        Map<Integer, List<GeneratedQuestion>> generatedByWeek = new LinkedHashMap<>();
+        try {
+            Map<Integer, CompletableFuture<List<GeneratedQuestion>>> futures = new LinkedHashMap<>();
+            for (QuizGenerateRequest.WeekSpec spec : request.getWeeks()) {
+                Integer weekNo = spec.getWeekNo();
+                String scenario = scenarioByWeek.get(weekNo);
+                futures.put(weekNo, CompletableFuture.supplyAsync(
+                        () -> quizAiGenerator.generate(scenario, spec.getMultipleCount(), spec.getOxCount()),
+                        executor));
+            }
+            for (Map.Entry<Integer, CompletableFuture<List<GeneratedQuestion>>> e : futures.entrySet()) {
+                try {
+                    generatedByWeek.put(e.getKey(), e.getValue().join());
+                } catch (Exception ex) {
+                    log.error("[Quiz] {}주차 AI 생성 실패 - 건너뜀", e.getKey(), ex);
+                    generatedByWeek.put(e.getKey(), List.of());
+                }
+            }
+        } finally {
+            executor.shutdown();
+        }
+
+        // 3) 결과를 엔티티로 조립 후 저장 (메인 스레드, 트랜잭션 안)
+        List<Quiz> savedQuizzes = new ArrayList<>();
         for (QuizGenerateRequest.WeekSpec spec : request.getWeeks()) {
             Integer weekNo = spec.getWeekNo();
-
-            // 주차 시나리오 aggregate (풀텍스트)
-            String scenario = scenarioAggregator.aggregate(curId, weekNo);
-
-            // AI 생성
-            List<GeneratedQuestion> generated = quizAiGenerator.generate(
-                    scenario, spec.getMultipleCount(), spec.getOxCount());
+            List<GeneratedQuestion> generated = generatedByWeek.getOrDefault(weekNo, List.of());
             if (generated.isEmpty()) {
                 continue;
             }
 
-            // Quiz(DRAFT) 조립
             Quiz quiz = Quiz.create(classId, weekNo, sessionByWeek.get(weekNo),
                     weekNo + "주차 퀴즈", createdBy);
 
