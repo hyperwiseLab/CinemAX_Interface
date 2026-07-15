@@ -1,8 +1,6 @@
 package com.cinemax.domain.quiz.entity;
 
 import com.cinemax.core.entity.BaseTimeEntity;
-import com.cinemax.domain.classes.entity.ClassEntity;
-import com.cinemax.domain.weeklySession.entity.WeeklySession;
 import com.cinemax.global.enums.QuizStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -46,15 +44,8 @@ public class Quiz extends BaseTimeEntity {
     @Column(name = "CREATED_BY")
     private Long createdBy;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CLASS_ID", insertable = false, updatable = false)
-    private ClassEntity classEntity;
-
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "WEEKLY_SESSION_ID", insertable = false, updatable = false)
-    private WeeklySession weeklySession;
+    // classId / weeklySessionId 는 단순 참조값으로만 저장한다.
+    // 읽기전용 @ManyToOne 연관관계를 두면 FK 제약이 생겨 반/세션 삭제를 막으므로 두지 않는다.
 
     @JsonIgnore
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)

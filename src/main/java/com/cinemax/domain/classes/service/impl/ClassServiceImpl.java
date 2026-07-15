@@ -66,6 +66,8 @@ public class ClassServiceImpl implements ClassService {
     private final WeeklySessionRepository weeklySessionRepository;
     private final WeeklySessionService weeklySessionService;
     private final CurriculumRepository curriculumRepository;
+    private final com.cinemax.domain.quiz.repository.QuizRepository quizRepository;
+    private final com.cinemax.domain.quiz.repository.QuizSubmissionRepository quizSubmissionRepository;
 
     // 수업 생성
     @Override
@@ -296,6 +298,10 @@ public class ClassServiceImpl implements ClassService {
 
         ClassEntity classEntity = classEntityRepository.findById(classId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_CLASS + classId));
+
+        // 반의 주차별 퀴즈 및 제출 기록 삭제 (WeeklySession 삭제 전에 정리)
+        quizSubmissionRepository.deleteByClassId(classId);
+        quizRepository.deleteAll(quizRepository.findByClassId(classId));
 
         // 연관된 초대 코드 및 주차별 세션 삭제
         List<ClassInvite> invites = classInviteRepository.findByClassEntityClassId(classId);

@@ -1,9 +1,6 @@
 package com.cinemax.domain.quiz.entity;
 
 import com.cinemax.core.entity.BaseTimeEntity;
-import com.cinemax.domain.classes.entity.ClassEntity;
-import com.cinemax.domain.user.entity.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -48,20 +45,7 @@ public class QuizSubmission extends BaseTimeEntity {
     @Column(name = "SUBMITTED_AT", nullable = false)
     private LocalDateTime submittedAt;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "QUIZ_ID", insertable = false, updatable = false)
-    private Quiz quiz;
-
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "USER_ID", insertable = false, updatable = false)
-    private User user;
-
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CLASS_ID", insertable = false, updatable = false)
-    private ClassEntity classEntity;
+    // quizId / userId / classId 는 단순 참조값으로만 저장 (FK 제약 없음)
 
     @Builder
     public QuizSubmission(Long quizId, Long userId, Long classId, Integer totalScore,

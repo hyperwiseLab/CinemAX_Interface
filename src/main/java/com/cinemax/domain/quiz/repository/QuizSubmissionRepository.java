@@ -22,4 +22,7 @@ public interface QuizSubmissionRepository extends JpaRepository<QuizSubmission, 
     // 퀴즈 전체 제출 목록 (반 결과 집계)
     @Query("SELECT S FROM QuizSubmission S WHERE S.quizId = :quizId ORDER BY S.totalScore DESC, S.submittedAt ASC")
     List<QuizSubmission> findAllByQuizId(@Param("quizId") Long quizId);
+
+    // 반 삭제 시 제출 기록 일괄 삭제
+    void deleteByClassId(Long classId);
 }
