@@ -343,6 +343,12 @@ public class QuizServiceImpl implements QuizService {
                 .build();
     }
 
+    // 특정 학생 결과 상세 (관리자/교수). 조회 로직은 본인 결과와 동일하고 권한만 컨트롤러에서 구분한다.
+    @Override
+    public QuizResultResponse getStudentResult(Long quizId, Long userId) {
+        return getMyResult(quizId, userId);
+    }
+
     @Override
     public QuizClassResultResponse getClassResults(Long quizId) {
         Quiz quiz = quizRepository.findById(quizId)

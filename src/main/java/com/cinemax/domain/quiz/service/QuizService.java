@@ -27,6 +27,9 @@ public interface QuizService {
     // 본인 결과 조회
     QuizResultResponse getMyResult(Long quizId, Long userId);
 
+    // 특정 학생의 결과 상세 조회 (관리자/교수) — 문항별 답변까지
+    QuizResultResponse getStudentResult(Long quizId, Long userId);
+
     // 반 전체 결과 집계 (평균·랭킹) — 관리자
     QuizClassResultResponse getClassResults(Long quizId);
 

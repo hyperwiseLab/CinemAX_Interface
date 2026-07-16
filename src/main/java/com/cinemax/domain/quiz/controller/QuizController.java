@@ -153,4 +153,14 @@ public class QuizController extends BaseController {
         QuizClassResultResponse response = quizService.getClassResults(quizId);
         return success(response, "반 결과 집계 조회 성공");
     }
+
+    @GetMapping("/{quizId}/results/{userId}")
+    @PreAuthorize("hasAnyRole('PROFESSOR', 'ADMIN')")
+    @Operation(summary = "학생 결과 상세", description = "특정 학생이 문항별로 어떻게 답변했는지 조회합니다.")
+    public ResponseEntity<ApiResponse<QuizResultResponse>> getStudentResult(
+            @Parameter(description = "퀴즈 ID") @PathVariable Long quizId,
+            @Parameter(description = "학생 userId") @PathVariable Long userId) {
+        QuizResultResponse response = quizService.getStudentResult(quizId, userId);
+        return success(response, "학생 결과 상세 조회 성공");
+    }
 }
