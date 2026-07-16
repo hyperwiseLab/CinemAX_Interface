@@ -18,9 +18,6 @@ public class QuizOption extends BaseTimeEntity {
     @Column(name = "OPTION_ID")
     private Long optionId;
 
-    @Column(name = "QUESTION_ID")
-    private Long questionId;
-
     // 보기 순번 (1~4). 정답 매칭 기준값.
     @Column(name = "ORDER_NO", nullable = false)
     private Integer orderNo;
@@ -31,9 +28,11 @@ public class QuizOption extends BaseTimeEntity {
     @Column(name = "IS_CORRECT", nullable = false)
     private Boolean isCorrect;
 
+    // FK 는 이 연관관계가 관리한다. (스칼라 questionId 를 따로 두면
+    // 부모 저장 전 id 가 null 이라 보기가 고아로 저장된다)
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "QUESTION_ID", insertable = false, updatable = false)
+    @JoinColumn(name = "QUESTION_ID")
     private QuizQuestion question;
 
     // 보기 생성 팩토리 메서드
@@ -48,6 +47,5 @@ public class QuizOption extends BaseTimeEntity {
     // 부모 문항 연결 (양방향)
     public void assignQuestion(QuizQuestion question) {
         this.question = question;
-        this.questionId = question.getQuestionId();
     }
 }

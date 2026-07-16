@@ -198,15 +198,16 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public List<QuizResponse> getQuizzesByClass(Long classId) {
-        return quizRepository.findByClassId(classId).stream()
-                .map(quizMapper::toDto)
-                .toList();
+        List<Quiz> quizzes = quizRepository.findByClassId(classId);
+        quizzes.forEach(this::initQuizGraph);
+        return quizzes.stream().map(quizMapper::toDto).toList();
     }
 
     @Override
     public QuizResponse getQuiz(Long quizId) {
         Quiz quiz = quizRepository.findByIdWithQuestions(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_QUIZ + quizId));
+        initQuizGraph(quiz);
         return quizMapper.toDto(quiz);
     }
 
@@ -254,9 +255,14 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public List<QuizPlayResponse> getPlayableQuizzes(Long classId, Integer weekNo) {
-        return quizRepository.findByClassIdAndWeekNoAndStatus(classId, weekNo, QuizStatus.PUBLISHED).stream()
-                .map(this::toPlayDto)
-                .toList();
+        List<Quiz> quizzes = quizRepository.findByClassIdAndWeekNoAndStatus(classId, weekNo, QuizStatus.PUBLISHED);
+        quizzes.forEach(this::initQuizGraph);
+        return quizzes.stream().map(this::toPlayDto).toList();
+    }
+
+    // lazy 컬렉션(문항/보기)을 트랜잭션 안에서 명시적으로 초기화한다.
+    private void initQuizGraph(Quiz quiz) {
+        quiz.getQuestions().forEach(q -> q.getOptions().size());
     }
 
     @Override

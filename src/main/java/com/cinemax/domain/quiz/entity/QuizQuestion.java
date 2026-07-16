@@ -22,9 +22,6 @@ public class QuizQuestion extends BaseTimeEntity {
     @Column(name = "QUESTION_ID")
     private Long questionId;
 
-    @Column(name = "QUIZ_ID")
-    private Long quizId;
-
     // MULTIPLE(객관식) / OX
     @Enumerated(EnumType.STRING)
     @Column(name = "TYPE", nullable = false)
@@ -49,9 +46,11 @@ public class QuizQuestion extends BaseTimeEntity {
     @Column(name = "SCORE", nullable = false)
     private Integer score;
 
+    // FK 는 이 연관관계가 관리한다. (스칼라 quizId 를 따로 두면
+    // 부모 저장 전 id 가 null 이라 문항이 고아로 저장된다)
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "QUIZ_ID", insertable = false, updatable = false)
+    @JoinColumn(name = "QUIZ_ID")
     private Quiz quiz;
 
     @JsonIgnore
@@ -88,7 +87,6 @@ public class QuizQuestion extends BaseTimeEntity {
     // 부모 Quiz 연결 (양방향)
     public void assignQuiz(Quiz quiz) {
         this.quiz = quiz;
-        this.quizId = quiz.getQuizId();
     }
 
     // 보기 추가 (객관식, 양방향)
