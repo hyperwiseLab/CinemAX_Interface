@@ -55,7 +55,8 @@ import java.util.stream.Collectors;
 public class QuizServiceImpl implements QuizService {
 
     private static final String NOT_FOUND_QUIZ = "퀴즈를 찾을 수 없습니다. ID: ";
-    private static final int DEFAULT_SCORE = 10;
+    // 문항당 1점 (만점 = 문항 수). 점수를 정답 개수로 읽히게 한다.
+    private static final int DEFAULT_SCORE = 1;
 
     private final QuizRepository quizRepository;
     private final QuizSubmissionRepository quizSubmissionRepository;
