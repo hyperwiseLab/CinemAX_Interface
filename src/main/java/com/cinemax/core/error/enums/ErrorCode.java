@@ -44,6 +44,13 @@ public enum ErrorCode {
     INSUFFICIENT_PERMISSIONS(6001, "권한이 부족합니다"),
     OPERATION_NOT_ALLOWED(6002, "허용되지 않은 작업입니다"),
 
+    // CBT 관련 에러 (6100번대)
+    CBT_SUBJECT_TOTAL_INVALID(6100, "과목 배점 합계가 100점이 아닙니다"),
+    CBT_CUT_SCORE_INVALID(6101, "과락 점수는 과목 배점을 초과할 수 없습니다"),
+    CBT_SUBJECT_HAS_QUESTIONS(6102, "문제가 등록된 과목은 삭제할 수 없습니다"),
+    CBT_NOT_CONFIGURED(6103, "CBT 과목 설정이 완료되지 않았습니다"),
+    CBT_QUESTION_BANK_INSUFFICIENT(6104, "문제 은행의 문항 수가 출제 문항 수보다 부족합니다"),
+
     // 이메일 검증 관련 에러 (7000번대)
     EMAIL_SEND_FAILED(7000, "이메일 발송에 실패했습니다"),
     VERIFICATION_CODE_NOT_FOUND(7001, "인증 코드를 찾을 수 없습니다"),

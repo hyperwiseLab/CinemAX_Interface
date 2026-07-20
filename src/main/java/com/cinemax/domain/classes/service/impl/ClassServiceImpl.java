@@ -68,6 +68,10 @@ public class ClassServiceImpl implements ClassService {
     private final CurriculumRepository curriculumRepository;
     private final com.cinemax.domain.quiz.repository.QuizRepository quizRepository;
     private final com.cinemax.domain.quiz.repository.QuizSubmissionRepository quizSubmissionRepository;
+    private final com.cinemax.domain.cbt.repository.CbtConfigRepository cbtConfigRepository;
+    private final com.cinemax.domain.cbt.repository.CbtSubjectRepository cbtSubjectRepository;
+    private final com.cinemax.domain.cbt.repository.CbtQuestionRepository cbtQuestionRepository;
+    private final com.cinemax.domain.cbt.repository.CbtAttemptRepository cbtAttemptRepository;
 
     // 수업 생성
     @Override
@@ -302,6 +306,12 @@ public class ClassServiceImpl implements ClassService {
         // 반의 주차별 퀴즈 및 제출 기록 삭제 (WeeklySession 삭제 전에 정리)
         quizSubmissionRepository.deleteByClassId(classId);
         quizRepository.deleteAll(quizRepository.findByClassId(classId));
+
+        // 반의 CBT 설정/과목/문제/응시 기록 삭제
+        cbtAttemptRepository.deleteByClassId(classId);
+        cbtQuestionRepository.deleteAll(cbtQuestionRepository.findByClassId(classId));
+        cbtSubjectRepository.deleteByClassId(classId);
+        cbtConfigRepository.deleteByClassId(classId);
 
         // 연관된 초대 코드 및 주차별 세션 삭제
         List<ClassInvite> invites = classInviteRepository.findByClassEntityClassId(classId);
