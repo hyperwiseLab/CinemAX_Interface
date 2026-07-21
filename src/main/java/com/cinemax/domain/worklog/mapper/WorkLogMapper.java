@@ -1,8 +1,10 @@
 package com.cinemax.domain.worklog.mapper;
 
 import com.cinemax.core.config.GlobalMapperConfig;
+import com.cinemax.domain.worklog.dto.CycleScoreResponse;
 import com.cinemax.domain.worklog.dto.WorkLogResponse;
 import com.cinemax.domain.worklog.entity.WorkLog;
+import com.cinemax.domain.worklog.entity.WorkLogCycleScore;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -26,7 +28,11 @@ public interface WorkLogMapper {
     @Mapping(source = "professorFeedback", target = "professorFeedback")
     @Mapping(source = "feedbackDate", target = "feedbackDate")
     @Mapping(source = "feedbackScore", target = "feedbackScore")
+    @Mapping(source = "cycleScores", target = "cycleScores")
     WorkLogResponse toDto(WorkLog entity);
 
     List<WorkLogResponse> toDto(List<WorkLog> entities);
+
+    // 사이클별 점수 변환 (위 cycleScores 매핑이 이 메서드로 위임된다)
+    CycleScoreResponse toDto(WorkLogCycleScore entity);
 }

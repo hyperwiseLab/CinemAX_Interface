@@ -3,7 +3,6 @@ package com.cinemax.domain.worklog.controller;
 import com.cinemax.core.controller.BaseController;
 import com.cinemax.core.dto.response.ApiResponse;
 import com.cinemax.domain.user.entity.User;
-import com.cinemax.domain.worklog.dto.CycleStatisticsResponse;
 import com.cinemax.domain.worklog.dto.ProfessorFeedbackRequest;
 import com.cinemax.domain.worklog.dto.WeeklyFeedbackResponse;
 import com.cinemax.domain.worklog.dto.WorkHourStatisticsResponse;
@@ -265,30 +264,6 @@ public class WorkLogController extends BaseController {
         return success(response, "피드백이 성공적으로 수정되었습니다.");
     }
 
-    // Cycle별 통계 조회 (사용자별)
-    @GetMapping("/user/{userId}/curriculum/{curId}/cycle-statistics")
-    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR', 'ADMIN')")
-    @Operation(summary = "Cycle별 통계 조회", description = "특정 사용자의 특정 커리큘럼에 대한 Cycle별 WorkLog 통계를 조회합니다.")
-    public ResponseEntity<ApiResponse<List<CycleStatisticsResponse>>> getCycleStatistics(@Parameter(description = "사용자 ID") @PathVariable Long userId,
-                                                                                         @Parameter(description = "커리큘럼 ID") @PathVariable Long curId) {
-
-        List<CycleStatisticsResponse> responses = workLogService.getCycleStatistics(userId, curId);
-
-        return success(responses, "Cycle별 통계를 조회했습니다.");
-    }
-
-    // 내 Cycle별 통계 조회 (학생 본인)
-    @GetMapping("/my/curriculum/{curId}/cycle-statistics")
-    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
-    @Operation(summary = "내 Cycle별 통계 조회", description = "현재 로그인한 학생의 특정 커리큘럼에 대한 Cycle별 WorkLog 통계를 조회합니다.")
-    public ResponseEntity<ApiResponse<List<CycleStatisticsResponse>>> getMyCycleStatistics(@Parameter(description = "커리큘럼 ID") @PathVariable Long curId,
-                                                                                           @AuthenticationPrincipal CustomUserDetailsService userDetails) {
-
-        List<CycleStatisticsResponse> responses = workLogService.getCycleStatistics(userDetails.getUserId(), curId);
-
-        return success(responses, "내 Cycle별 통계를 조회했습니다.");
-    }
-
     // Week별 피드백 조회
     @GetMapping("/user/{userId}/week/{weekNo}/feedback")
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR', 'ADMIN')")
@@ -311,16 +286,5 @@ public class WorkLogController extends BaseController {
         WeeklyFeedbackResponse response = workLogService.getWeeklyFeedback(userDetails.getUserId(), weekNo);
 
         return success(response, "내 Week별 피드백을 조회했습니다.");
-    }
-
-    // Class별 Cycle 통계 조회 (교수용)
-    @GetMapping("/class/{classId}/cycle-statistics")
-    @PreAuthorize("hasAnyRole('PROFESSOR', 'ADMIN')")
-    @Operation(summary = "Class별 Cycle 통계 조회", description = "특정 Class의 전체 학생에 대한 Cycle별 WorkLog 통계를 조회합니다. (교수 전용)")
-    public ResponseEntity<ApiResponse<List<CycleStatisticsResponse>>> getCycleStatisticsByClass(@Parameter(description = "Class ID") @PathVariable Long classId) {
-
-        List<CycleStatisticsResponse> responses = workLogService.getCycleStatisticsByClass(classId);
-
-        return success(responses, "Class별 Cycle 통계를 조회했습니다.");
     }
 }

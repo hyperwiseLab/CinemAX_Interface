@@ -1,5 +1,6 @@
 package com.cinemax.domain.worklog.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 업무일지 생성/수정 요청 DTO
@@ -58,4 +60,9 @@ public class WorkLogRequest {
 
     @Size(max = 1000, message = "궁금한 점은 1000자 이내로 작성해주세요.")
     private String questionContent;
+
+    // 사이클별 평가 점수. 넘어오면 위 difficultyLevel/proficiencyLevel 은
+    // 이 값들의 평균으로 서버가 다시 계산한다.
+    @Valid
+    private List<CycleScoreRequest> cycleScores;
 }

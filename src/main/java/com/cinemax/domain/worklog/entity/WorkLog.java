@@ -10,10 +10,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 업무일지 엔티티
@@ -87,6 +91,19 @@ public class WorkLog extends BaseTimeEntity {
     @Column(name = "FEEDBACK_SCORE")
     private Double feedbackScore; // 1-5점
 
+    // 사이클별 평가 점수. 위 difficultyLevel/proficiencyLevel 은 이 값들의 평균이다.
+    //
+    // SUBSELECT 인 이유: 이 리포지토리는 JOIN FETCH 쿼리가 8개이고 그중
+    // findLatestByUserIdAndWeeklySessionId 는 LIMIT 1 과 함께 쓰인다.
+    // 컬렉션을 조인으로 가져오면 MultipleBagFetchException 이 나거나
+    // LIMIT 이 조인 결과 행 기준으로 걸려 결과가 조용히 틀어진다.
+    @JsonIgnore
+    @OneToMany(mappedBy = "workLog", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orderNo ASC")
+    @Fetch(FetchMode.SUBSELECT)
+    @Builder.Default
+    private List<WorkLogCycleScore> cycleScores = new ArrayList<>();
+
     // ===== 비즈니스 메서드 =====
 
     // 업무일지 생성
@@ -135,6 +152,41 @@ public class WorkLog extends BaseTimeEntity {
         if (questionContent != null) {
             this.questionContent = questionContent;
         }
+    }
+
+    // 사이클 점수 추가 (양방향 연관 유지)
+    public void addCycleScore(WorkLogCycleScore score) {
+        this.cycleScores.add(score);
+        score.assignWorkLog(this);
+    }
+
+    // 사이클 점수 전체 교체 (orphanRemoval 로 기존 점수 삭제됨)
+    //
+    // update() 의 null-skip 패치 방식과 달리 여기는 전량 교체다.
+    // null-skip 으로 두면 빈 리스트가 "무시"로 해석돼 점수를 지울 수 없다.
+    public void replaceCycleScores(List<WorkLogCycleScore> newScores) {
+        this.cycleScores.clear();
+        if (newScores != null) {
+            for (WorkLogCycleScore s : newScores) {
+                addCycleScore(s);
+            }
+        }
+    }
+
+    // 사이클 점수 평균으로 주차 단위 점수를 다시 계산한다.
+    // 화면·통계가 아직 주차 스칼라를 읽으므로 원본과 어긋나지 않게 서버가 직접 파생시킨다.
+    public void recalculateLevelsFromCycleScores() {
+        if (cycleScores.isEmpty()) {
+            return;
+        }
+        this.difficultyLevel = average(cycleScores.stream()
+                .map(WorkLogCycleScore::getConceptScore));
+        this.proficiencyLevel = average(cycleScores.stream()
+                .map(WorkLogCycleScore::getApplicationScore));
+    }
+
+    private Integer average(java.util.stream.Stream<Integer> scores) {
+        return (int) Math.round(scores.mapToInt(Integer::intValue).average().orElse(0));
     }
 
     // 업무 내용 수정

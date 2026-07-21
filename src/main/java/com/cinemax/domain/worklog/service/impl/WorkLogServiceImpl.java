@@ -2,7 +2,7 @@ package com.cinemax.domain.worklog.service.impl;
 
 import com.cinemax.domain.user.entity.User;
 import com.cinemax.domain.user.repository.UserRepository;
-import com.cinemax.domain.worklog.dto.CycleStatisticsResponse;
+import com.cinemax.domain.worklog.dto.CycleScoreRequest;
 import com.cinemax.domain.worklog.dto.ProfessorFeedbackRequest;
 import com.cinemax.domain.worklog.dto.WeeklyFeedbackResponse;
 import com.cinemax.domain.worklog.dto.WorkHourStatisticsResponse;
@@ -10,6 +10,7 @@ import com.cinemax.domain.worklog.dto.WorkLogRequest;
 import com.cinemax.domain.worklog.dto.WorkLogResponse;
 import com.cinemax.domain.worklog.dto.WorkLogStatisticsResponse;
 import com.cinemax.domain.worklog.entity.WorkLog;
+import com.cinemax.domain.worklog.entity.WorkLogCycleScore;
 import com.cinemax.domain.worklog.mapper.WorkLogMapper;
 import com.cinemax.domain.worklog.repository.WorkLogRepository;
 import com.cinemax.domain.worklog.service.WorkLogService;
@@ -70,6 +71,8 @@ public class WorkLogServiceImpl implements WorkLogService {
                 request.getQuestionContent()
         );
 
+        applyCycleScores(workLog, request.getCycleScores());
+
         WorkLog savedWorkLog = workLogRepository.save(workLog);
         log.info("업무일지 생성 완료 - workLogId: {}, userId: {}, weeklySessionId: {}",
                 savedWorkLog.getWorkLogId(), savedWorkLog.getUserId(), savedWorkLog.getWeeklySessionId());
@@ -98,9 +101,39 @@ public class WorkLogServiceImpl implements WorkLogService {
                 request.getQuestionContent()
         );
 
+        applyCycleScores(workLog, request.getCycleScores());
+
         WorkLog updatedWorkLog = workLogRepository.save(workLog);
 
         return workLogMapper.toDto(updatedWorkLog);
+    }
+
+    /**
+     * 사이클별 점수를 저장하고 주차 단위 점수(difficultyLevel/proficiencyLevel)를 그 평균으로 다시 계산한다.
+     *
+     * 평균을 클라이언트가 보낸 값 대신 서버가 파생시키는 이유:
+     * 원본(사이클별)과 요약(주차 평균)이 어긋나면 화면마다 다른 점수가 보이기 때문이다.
+     * 요청에 사이클 점수가 없으면(구버전 클라이언트) 기존 동작 그대로 둔다.
+     */
+    private void applyCycleScores(WorkLog workLog, List<CycleScoreRequest> cycleScores) {
+        if (cycleScores == null || cycleScores.isEmpty()) {
+            return;
+        }
+
+        List<WorkLogCycleScore> scores = new ArrayList<>();
+        int order = 1;
+        for (CycleScoreRequest req : cycleScores) {
+            scores.add(WorkLogCycleScore.create(
+                    req.getCycleId(),
+                    req.getConceptScore(),
+                    req.getApplicationScore(),
+                    req.getOrderNo() != null ? req.getOrderNo() : order
+            ));
+            order++;
+        }
+
+        workLog.replaceCycleScores(scores);
+        workLog.recalculateLevelsFromCycleScores();
     }
 
     // 업무일지 조회
@@ -305,29 +338,6 @@ public class WorkLogServiceImpl implements WorkLogService {
         return workLogMapper.toDto(saved);
     }
 
-    // Cycle별 통계 조회
-    @Override
-    public List<CycleStatisticsResponse> getCycleStatistics(Long userId, Long curId) {
-        List<Object[]> results = workLogRepository.findCycleStatisticsByUserIdAndCurId(userId, curId);
-
-        return results.stream().map(result -> {
-            CycleStatisticsResponse response = CycleStatisticsResponse.builder()
-                    .cycleId(((Number) result[0]).longValue())
-                    .weekNo(((Number) result[1]).intValue())
-                    .cycleTitle((String) result[2])
-                    .proficiencyAvg(result[3] != null ? ((Number) result[3]).doubleValue() : null)
-                    .difficultyAvg(result[4] != null ? ((Number) result[4]).doubleValue() : null)
-                    .workLogCount(((Number) result[5]).longValue())
-                    .totalWorkHours(result[6] != null ? (BigDecimal) result[6] : BigDecimal.ZERO)
-                    .build();
-
-            // 평균값 반올림 및 전체 평균 계산
-            response.roundAverages();
-
-            return response;
-        }).collect(Collectors.toList());
-    }
-
     // Week별 피드백 조회
     @Override
     public WeeklyFeedbackResponse getWeeklyFeedback(Long userId, Integer weekNo) {
@@ -349,26 +359,4 @@ public class WorkLogServiceImpl implements WorkLogService {
                 .build();
     }
 
-    // Class별 Cycle 통계 조회 (교수용)
-    @Override
-    public List<CycleStatisticsResponse> getCycleStatisticsByClass(Long classId) {
-        List<Object[]> results = workLogRepository.findCycleStatisticsByClassId(classId);
-
-        return results.stream().map(result -> {
-            CycleStatisticsResponse response = CycleStatisticsResponse.builder()
-                    .cycleId(result[0] != null ? ((Number) result[0]).longValue() : null)
-                    .weekNo(result[1] != null ? ((Number) result[1]).intValue() : null)
-                    .cycleTitle((String) result[2])
-                    .proficiencyAvg(result[3] != null ? ((Number) result[3]).doubleValue() : null)
-                    .difficultyAvg(result[4] != null ? ((Number) result[4]).doubleValue() : null)
-                    .workLogCount(result[5] != null ? ((Number) result[5]).longValue() : 0L)
-                    .totalWorkHours(result[6] != null ? (BigDecimal) result[6] : BigDecimal.ZERO)
-                    .build();
-
-            // 평균값 반올림 및 전체 평균 계산
-            response.roundAverages();
-
-            return response;
-        }).collect(Collectors.toList());
-    }
 }

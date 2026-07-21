@@ -117,35 +117,6 @@ public interface WorkLogRepository extends JpaRepository<WorkLog, Long> {
     @Query("SELECT COALESCE(AVG(A.workHours), 0) FROM WorkLog A WHERE A.userId = :userId")
     java.math.BigDecimal avgDailyWorkHoursByUserId(@Param("userId") Long userId);
 
-    // ===== Cycle별 집계 쿼리 (간접 연결 방식) =====
-
-    /**
-     * Cycle별 WorkLog 통계 조회 (WEEKLY_SESSION을 통한 간접 연결)
-     *
-     * 연결 경로:
-     * WorkLog -> WeeklySession -> ClassInvite -> Class -> Cycle (CUR_ID + WEEK_NO)
-     */
-    @Query(value = """
-            SELECT
-                c.CYCLE_ID as cycleId,
-                c.WEEK_NO as weekNo,
-                c.CYCLE_TITLE as cycleTitle,
-                AVG(wl.PROFICIENCY_LEVEL) as proficiencyAvg,
-                AVG(wl.DIFFICULTY_LEVEL) as difficultyAvg,
-                COUNT(wl.WORK_LOG_ID) as workLogCount,
-                SUM(wl.WORK_HOURS) as totalWorkHours
-            FROM TBL_WORK_LOG wl
-            INNER JOIN TBL_WEEKLY_SESSION ws ON wl.WEEKLY_SESSION_ID = ws.WEEKLY_SESSION_ID
-            INNER JOIN TBL_CLASS_INVITE ci ON ws.INVITE_ID = ci.INVITE_ID
-            INNER JOIN TBL_CLASS cls ON ci.CLASS_ID = cls.CLASS_ID
-            INNER JOIN TBL_CYCLE c ON c.CUR_ID = cls.CUR_ID AND c.WEEK_NO = ws.WEEK_NO
-            WHERE wl.USER_ID = :userId AND cls.CUR_ID = :curId
-            GROUP BY c.CYCLE_ID, c.WEEK_NO, c.CYCLE_TITLE
-            ORDER BY c.WEEK_NO
-            """, nativeQuery = true)
-    List<Object[]> findCycleStatisticsByUserIdAndCurId(@Param("userId") Long userId,
-                                                        @Param("curId") Long curId);
-
     /**
      * Week별 피드백 조회
      */
@@ -163,28 +134,6 @@ public interface WorkLogRepository extends JpaRepository<WorkLog, Long> {
             """, nativeQuery = true)
     List<Object[]> findWeeklyFeedbackByUserIdAndWeekNo(@Param("userId") Long userId,
                                                          @Param("weekNo") Integer weekNo);
-
-    /**
-     * 특정 Class의 Cycle별 통계 조회 (전체 학생)
-     */
-    @Query(value = """
-            SELECT
-                c.CYCLE_ID as cycleId,
-                c.WEEK_NO as weekNo,
-                c.CYCLE_TITLE as cycleTitle,
-                AVG(wl.PROFICIENCY_LEVEL) as proficiencyAvg,
-                AVG(wl.DIFFICULTY_LEVEL) as difficultyAvg,
-                COUNT(wl.WORK_LOG_ID) as workLogCount,
-                SUM(wl.WORK_HOURS) as totalWorkHours
-            FROM TBL_CYCLE c
-            LEFT JOIN TBL_WEEKLY_SESSION ws ON c.WEEK_NO = ws.WEEK_NO
-            LEFT JOIN TBL_CLASS_INVITE ci ON ws.INVITE_ID = ci.INVITE_ID
-            LEFT JOIN TBL_WORK_LOG wl ON wl.WEEKLY_SESSION_ID = ws.WEEKLY_SESSION_ID
-            WHERE ci.CLASS_ID = :classId AND c.CUR_ID = (SELECT CUR_ID FROM TBL_CLASS WHERE CLASS_ID = :classId)
-            GROUP BY c.CYCLE_ID, c.WEEK_NO, c.CYCLE_TITLE
-            ORDER BY c.WEEK_NO
-            """, nativeQuery = true)
-    List<Object[]> findCycleStatisticsByClassId(@Param("classId") Long classId);
 
     /**
      * inviteId로 특정 사용자의 모든 업무일지 조회

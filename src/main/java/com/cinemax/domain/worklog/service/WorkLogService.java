@@ -1,6 +1,5 @@
 package com.cinemax.domain.worklog.service;
 
-import com.cinemax.domain.worklog.dto.CycleStatisticsResponse;
 import com.cinemax.domain.worklog.dto.ProfessorFeedbackRequest;
 import com.cinemax.domain.worklog.dto.WeeklyFeedbackResponse;
 import com.cinemax.domain.worklog.dto.WorkHourStatisticsResponse;
@@ -61,12 +60,6 @@ public interface WorkLogService {
     // 교수 피드백 수정 (교수 전용)
     WorkLogResponse updateProfessorFeedback(Long userId, Long weeklySessionId, LocalDate logDate, ProfessorFeedbackRequest request);
 
-    // Cycle별 통계 조회 (특정 사용자의 특정 커리큘럼)
-    List<CycleStatisticsResponse> getCycleStatistics(Long userId, Long curId);
-
     // Week별 피드백 조회
     WeeklyFeedbackResponse getWeeklyFeedback(Long userId, Integer weekNo);
-
-    // Class별 Cycle 통계 조회 (교수용)
-    List<CycleStatisticsResponse> getCycleStatisticsByClass(Long classId);
 }
