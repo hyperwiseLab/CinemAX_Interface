@@ -33,6 +33,8 @@ public interface WeeklySessionMapper {
     @Mapping(source = "autoClosed", target = "autoClosed")
     @Mapping(source = "createDt", target = "createDt")
     @Mapping(source = "updateDt", target = "updateDt")
+    @Mapping(source = "classInvite.classEntity.classId", target = "classId")
+    @Mapping(source = "classInvite.classEntity.classNm", target = "classNm")
     WeeklySessionResponse toResponse(WeeklySession entity);
 
     List<WeeklySessionResponse> toResponse(List<WeeklySession> entities);

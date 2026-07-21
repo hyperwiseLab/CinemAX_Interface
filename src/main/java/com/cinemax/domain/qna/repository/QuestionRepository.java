@@ -21,6 +21,10 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @Query("SELECT A FROM Question A WHERE A.weeklySessionId = :weeklySessionId ORDER BY A.createDt DESC")
     List<Question> findByWeeklySession(@Param("weeklySessionId") Long weeklySessionId);
 
+    // 주차별 세션의 질문 목록 + 답변 fetch join (목록에서 답변 N+1 제거)
+    @Query("SELECT DISTINCT A FROM Question A LEFT JOIN FETCH A.answers WHERE A.weeklySessionId = :weeklySessionId ORDER BY A.createDt DESC")
+    List<Question> findByWeeklySessionWithAnswers(@Param("weeklySessionId") Long weeklySessionId);
+
     // 사용자별 질문 목록 조회
     @Query("SELECT A FROM Question A WHERE A.user.userId = :userId ORDER BY A.createDt DESC")
     List<Question> findByUserId(@Param("userId") Long userId);

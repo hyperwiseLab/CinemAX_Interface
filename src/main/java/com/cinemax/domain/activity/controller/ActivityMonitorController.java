@@ -42,6 +42,18 @@ public class ActivityMonitorController extends BaseController {
         return success(responses, "학생 활동 상태를 조회했습니다.");
     }
 
+    // 모니터링 대시보드 집계 조회 (교수용) - 학생별 활동+최신코드+에러수 + 사이클/과제 + 제출 성공률을 한 번에
+    @GetMapping("/weekly-session/{weeklySessionId}/dashboard")
+    @PreAuthorize("hasAnyRole('PROFESSOR', 'ADMIN')")
+    @Operation(summary = "모니터링 대시보드 집계 조회",
+            description = "학생별 활동 상태·최신 코드·에러 수와 주차 사이클/과제, 제출 성공률을 한 번에 조회합니다. 이후 갱신은 웹소켓 이벤트로 처리합니다.")
+    public ResponseEntity<ApiResponse<com.cinemax.domain.activity.dto.ActivityDashboardResponse>> getDashboard(
+            @Parameter(description = "주차별 수업 ID") @PathVariable Long weeklySessionId,
+            @Parameter(description = "반 ID (세션에서 유추 실패 시 사용)") @RequestParam(required = false) Long classId) {
+
+        return success(activityMonitorService.getDashboard(weeklySessionId, classId), "모니터링 대시보드를 조회했습니다.");
+    }
+
     // 특정 상태의 학생 목록 조회 (교수용)
     @GetMapping("/weekly-session/{weeklySessionId}/status/{status}")
     @PreAuthorize("hasAnyRole('PROFESSOR', 'ADMIN')")

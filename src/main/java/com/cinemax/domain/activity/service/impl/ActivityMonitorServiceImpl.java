@@ -5,8 +5,20 @@ import com.cinemax.domain.activity.entity.ActivityMonitor;
 import com.cinemax.domain.activity.mapper.ActivityMonitorMapper;
 import com.cinemax.domain.activity.repository.ActivityMonitorRepository;
 import com.cinemax.domain.activity.service.ActivityMonitorService;
+import com.cinemax.domain.classes.entity.ClassSubmit;
+import com.cinemax.domain.classes.repository.ClassEnrollRepository;
+import com.cinemax.domain.classes.repository.ClassSubmitRepository;
+import com.cinemax.domain.codesnapshot.entity.CodeSnapshot;
+import com.cinemax.domain.codesnapshot.repository.CodeSnapshotRepository;
+import com.cinemax.domain.curriculum.entity.CurriculumWeek;
+import com.cinemax.domain.curriculum.repository.CurriculumWeekRepository;
+import com.cinemax.domain.cycle.repository.CycleRepository;
 import com.cinemax.domain.progress.entity.Progress;
 import com.cinemax.domain.progress.repository.ProgressRepository;
+import com.cinemax.domain.task.entity.Task;
+import com.cinemax.domain.task.repository.TaskRepository;
+import com.cinemax.domain.weeklySession.entity.WeeklySession;
+import com.cinemax.domain.weeklySession.repository.WeeklySessionRepository;
 import com.cinemax.global.enums.ActivityAction;
 import com.cinemax.global.enums.StudentActivityStatus;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +48,13 @@ public class ActivityMonitorServiceImpl implements ActivityMonitorService {
     private final ActivityMonitorRepository activityMonitorRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final ActivityMonitorMapper activityMonitorMapper;
+    private final WeeklySessionRepository weeklySessionRepository;
+    private final CurriculumWeekRepository curriculumWeekRepository;
+    private final CycleRepository cycleRepository;
+    private final TaskRepository taskRepository;
+    private final CodeSnapshotRepository codeSnapshotRepository;
+    private final ClassSubmitRepository classSubmitRepository;
+    private final ClassEnrollRepository classEnrollRepository;
 
     // 주차별 수업 모든 학생 활동 상태 조회
     @Override
@@ -349,6 +372,122 @@ public class ActivityMonitorServiceImpl implements ActivityMonitorService {
         }
 
         return recordActivityLog(weeklySessionId, inviteId, taskId, ActivityAction.TEST_FAIL);
+    }
+
+    // 모니터링 대시보드 집계 조회
+    // 기존에 프론트가 학생마다 반복 호출하던 반→커리큘럼→사이클→과제→최신코드→에러수 체인을 한 번에 조인
+    @Override
+    public ActivityDashboardResponse getDashboard(Long weeklySessionId, Long classId) {
+
+        List<StudentActivityResponse> activities = getAllStudentActivities(weeklySessionId);
+
+        // 세션 → 반 → 커리큘럼 (세션 단위 1회)
+        WeeklySession session = weeklySessionRepository.findById(weeklySessionId)
+                .orElseThrow(() -> new IllegalArgumentException("주차 수업을 찾을 수 없습니다. ID: " + weeklySessionId));
+        Integer weekNo = session.getWeekNo();
+        Long curId = null;
+        Long resolvedClassId = classId;
+        if (session.getClassInvite() != null && session.getClassInvite().getClassEntity() != null) {
+            resolvedClassId = session.getClassInvite().getClassEntity().getClassId();
+            if (session.getClassInvite().getClassEntity().getCurriculum() != null) {
+                curId = session.getClassInvite().getClassEntity().getCurriculum().getCurId();
+            }
+        }
+
+        // 주차의 사이클 + 사이클별 과제 (세션 단위 1회)
+        final Long finalCurId = curId;
+        List<ActivityDashboardResponse.CycleInfo> cycles = List.of();
+        if (curId != null && weekNo != null) {
+            cycles = curriculumWeekRepository.findByCurIdAndWeekNo(curId, weekNo)
+                    .map(CurriculumWeek::getCurWeekId)
+                    .map(cycleRepository::findByCurWeekId)
+                    .orElse(List.of())
+                    .stream()
+                    .map(cycle -> ActivityDashboardResponse.CycleInfo.builder()
+                            .cycleId(cycle.getCycleId())
+                            .cycleTitle(cycle.getCycleTitle())
+                            .tasks(taskRepository.findByCurIdAndCycleId(finalCurId, cycle.getCycleId()).stream()
+                                    .map(task -> ActivityDashboardResponse.TaskInfo.builder()
+                                            .taskId(task.getTaskId())
+                                            .taskTitle(task.getTaskTitle())
+                                            .taskMode(task.getTaskMode())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build())
+                    .collect(Collectors.toList());
+        }
+
+        // 학생별 최신 코드 스냅샷 → 과제 제목은 배치 조회
+        Map<Long, CodeSnapshot> snapshotByUser = activities.stream()
+                .map(activity -> codeSnapshotRepository
+                        .findLatestByWeeklySessionAndUser(weeklySessionId, activity.getUserId())
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(CodeSnapshot::getUserId, Function.identity(), (a, b) -> a));
+
+        Map<Long, String> taskTitleById = taskRepository.findAllById(
+                        snapshotByUser.values().stream()
+                                .map(CodeSnapshot::getTaskId)
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet()))
+                .stream()
+                .collect(Collectors.toMap(Task::getTaskId, Task::getTaskTitle));
+
+        List<ActivityDashboardResponse.StudentDashboard> students = activities.stream()
+                .map(activity -> {
+                    CodeSnapshot snapshot = snapshotByUser.get(activity.getUserId());
+                    ActivityDashboardResponse.LatestCode latestCode = null;
+                    long errorCount = 0;
+                    if (snapshot != null) {
+                        latestCode = ActivityDashboardResponse.LatestCode.builder()
+                                .taskId(snapshot.getTaskId())
+                                .cycleId(snapshot.getCycleId())
+                                .taskTitle(taskTitleById.get(snapshot.getTaskId()))
+                                .content(snapshot.getContent())
+                                .saveAt(snapshot.getSaveAt())
+                                .build();
+                        if (snapshot.getTaskId() != null) {
+                            errorCount = getErrorCount(activity.getUserId(), snapshot.getTaskId());
+                        }
+                    }
+                    return ActivityDashboardResponse.StudentDashboard.builder()
+                            .activity(activity)
+                            .latestCode(latestCode)
+                            .errorCount(errorCount)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        // 과제 성공률 (result=true 비율, 제출 없으면 0)
+        int submissionTotal = 0;
+        int submissionSuccess = 0;
+        if (resolvedClassId != null) {
+            List<ClassSubmit> submissions = classSubmitRepository.findAllByWeeklySession(weeklySessionId, resolvedClassId);
+            submissionTotal = submissions.size();
+            submissionSuccess = (int) submissions.stream()
+                    .filter(submit -> Boolean.TRUE.equals(submit.getResult()))
+                    .count();
+        }
+        int totalStudents = resolvedClassId != null
+                ? classEnrollRepository.countActiveEnrollmentsByClassId(resolvedClassId).intValue()
+                : 0;
+
+        int successRate = submissionTotal > 0
+                ? (int) Math.round(submissionSuccess * 100.0 / submissionTotal)
+                : 0;
+
+        return ActivityDashboardResponse.builder()
+                .weeklySessionId(weeklySessionId)
+                .classId(resolvedClassId)
+                .curId(curId)
+                .weekNo(weekNo)
+                .cycles(cycles)
+                .students(students)
+                .totalStudents(totalStudents)
+                .successRate(successRate)
+                .submissionTotal(submissionTotal)
+                .submissionSuccess(submissionSuccess)
+                .build();
     }
 
     // WebSocket을 통한 활동 상태 변경 브로드캐스트

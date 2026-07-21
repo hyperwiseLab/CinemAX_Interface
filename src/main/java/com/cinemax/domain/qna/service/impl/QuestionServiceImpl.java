@@ -5,6 +5,7 @@ import com.cinemax.core.exception.BusinessException;
 import com.cinemax.core.exception.ResourceNotFoundException;
 import com.cinemax.domain.classes.entity.ClassEntity;
 import com.cinemax.domain.classes.repository.ClassEntityRepository;
+import com.cinemax.domain.qna.dto.QnaEventMessage;
 import com.cinemax.domain.qna.dto.QuestionRequest;
 import com.cinemax.domain.qna.dto.QuestionResponse;
 import com.cinemax.domain.qna.entity.Question;
@@ -19,6 +20,7 @@ import com.cinemax.global.enums.QuestionStatus;
 import com.cinemax.global.enums.QuestionUrgency;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +45,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionMapper questionMapper;
     private final ClassEntityRepository classEntityRepository;
     private final WeeklySessionRepository weeklySessionRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     @Transactional
@@ -81,6 +84,8 @@ public class QuestionServiceImpl implements QuestionService {
         );
 
         Question savedQuestion = questionRepository.save(question);
+        publishQnaEvent(QnaEventMessage.Type.QUESTION_CREATED, savedQuestion.getQuestionId(),
+                savedQuestion.getWeeklySessionId());
         return questionMapper.toDto(savedQuestion);
     }
 
@@ -102,9 +107,9 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<QuestionResponse> getQuestionsByWeeklySession(Long weeklySessionId) {
-        List<Question> questions = questionRepository.findByWeeklySession(weeklySessionId);
+        List<Question> questions = questionRepository.findByWeeklySessionWithAnswers(weeklySessionId);
         return questions.stream()
-                .map(questionMapper::toDtoWithoutAnswers)
+                .map(questionMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -183,6 +188,7 @@ public class QuestionServiceImpl implements QuestionService {
 
         question.updateInfo(request.getTitle(), request.getContent(), request.getUrgency(), request.getTags());
 
+        publishQnaEvent(QnaEventMessage.Type.QUESTION_UPDATED, question.getQuestionId(), question.getWeeklySessionId());
         return questionMapper.toDto(question);
     }
 
@@ -194,6 +200,7 @@ public class QuestionServiceImpl implements QuestionService {
 
         question.updateStatus(status);
 
+        publishQnaEvent(QnaEventMessage.Type.QUESTION_STATUS_CHANGED, question.getQuestionId(), question.getWeeklySessionId());
         return questionMapper.toDto(question);
     }
 
@@ -208,7 +215,9 @@ public class QuestionServiceImpl implements QuestionService {
             throw new IllegalArgumentException(UNAUTHORIZED);
         }
 
+        Long weeklySessionId = question.getWeeklySessionId();
         questionRepository.delete(question);
+        publishQnaEvent(QnaEventMessage.Type.QUESTION_DELETED, questionId, weeklySessionId);
     }
 
     @Override
@@ -219,5 +228,21 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public Long countUnansweredQuestions(Long weeklySessionId) {
         return questionRepository.countUnansweredQuestions(weeklySessionId);
+    }
+    // QnA 변경 웹소켓 이벤트 발행 (세션에 속하지 않은 질문은 발행 생략)
+    private void publishQnaEvent(QnaEventMessage.Type type, Long questionId, Long weeklySessionId) {
+        if (weeklySessionId == null) {
+            return;
+        }
+        try {
+            messagingTemplate.convertAndSend("/topic/qna/" + weeklySessionId,
+                    QnaEventMessage.builder()
+                            .type(type)
+                            .questionId(questionId)
+                            .weeklySessionId(weeklySessionId)
+                            .build());
+        } catch (Exception e) {
+            log.error("QnA 웹소켓 이벤트 발행 실패 - type: {}, questionId: {}", type, questionId, e);
+        }
     }
 }

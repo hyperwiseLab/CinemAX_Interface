@@ -12,6 +12,7 @@ import com.cinemax.domain.qna.service.AnswerService;
 import com.cinemax.domain.user.entity.User;
 import com.cinemax.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,7 @@ public class AnswerServiceImpl implements AnswerService {
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final AnswerMapper answerMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     @Transactional
@@ -59,6 +61,7 @@ public class AnswerServiceImpl implements AnswerService {
             // 여기서는 간단하게 처리하기 위해 답변이 달린 후 별도로 상태 업데이트할 수 있도록 함
         }
 
+        publishQnaEvent("ANSWER_CREATED", request.getQuestionId());
         return answerMapper.toDto(savedAnswer);
     }
 
@@ -95,6 +98,7 @@ public class AnswerServiceImpl implements AnswerService {
 
         answer.updateContent(request.getContent());
 
+        publishQnaEvent("ANSWER_UPDATED", questionId);
         return answerMapper.toDto(answer);
     }
 
@@ -110,10 +114,29 @@ public class AnswerServiceImpl implements AnswerService {
         }
 
         answerRepository.delete(answer);
+        publishQnaEvent("ANSWER_DELETED", questionId);
     }
 
     @Override
     public Long countAnswersByQuestionId(Long questionId) {
         return answerRepository.countByQuestionId(questionId);
+    }
+    // QnA 답변 변경 웹소켓 이벤트 발행 (질문의 세션으로 라우팅, 세션 없으면 생략)
+    private void publishQnaEvent(String type, Long questionId) {
+        try {
+            questionRepository.findById(questionId).ifPresent(question -> {
+                if (question.getWeeklySessionId() == null) {
+                    return;
+                }
+                messagingTemplate.convertAndSend("/topic/qna/" + question.getWeeklySessionId(),
+                        com.cinemax.domain.qna.dto.QnaEventMessage.builder()
+                                .type(com.cinemax.domain.qna.dto.QnaEventMessage.Type.valueOf(type))
+                                .questionId(questionId)
+                                .weeklySessionId(question.getWeeklySessionId())
+                                .build());
+            });
+        } catch (Exception e) {
+            log.error("QnA 답변 웹소켓 이벤트 발행 실패 - type: {}, questionId: {}", type, questionId, e);
+        }
     }
 }
