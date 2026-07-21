@@ -83,6 +83,9 @@ public interface ActivityMonitorService {
     // 모니터링 대시보드 집계 조회 (학생별 활동+최신코드+에러수 + 사이클/과제 + 제출 성공률)
     ActivityDashboardResponse getDashboard(Long weeklySessionId, Long classId);
 
+    // 학생 도움요청 (즉시 NEED_HELP 전환 + 웹소켓 브로드캐스트)
+    void requestHelp(Long weeklySessionId, Long userId);
+
     // 에러(테스트 실패) 기록
     ActivityLogResponse recordErrorCount(Long userId, Long weeklySessionId, Long taskId);
 }

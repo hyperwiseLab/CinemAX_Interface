@@ -490,6 +490,23 @@ public class ActivityMonitorServiceImpl implements ActivityMonitorService {
                 .build();
     }
 
+    // 학생 도움요청: 테스트 실패 카운트를 건드리지 않고 즉시 NEED_HELP 전환
+    @Override
+    @Transactional
+    public void requestHelp(Long weeklySessionId, Long userId) {
+
+        Progress progress = progressRepository.findByWeeklySessionIdAndUserId(weeklySessionId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("진도 정보를 찾을 수 없습니다."));
+
+        StudentActivityStatus previousStatus = progress.getActivityStatus();
+        progress.setActivityStatus(StudentActivityStatus.NEED_HELP);
+
+        progressRepository.save(progress);
+
+        // 이미 NEED_HELP 상태여도 항상 브로드캐스트 (교수 화면 즉시 알림 보장)
+        broadcastStatusChange(progress, previousStatus);
+    }
+
     // WebSocket을 통한 활동 상태 변경 브로드캐스트
     private void broadcastStatusChange(Progress progress, StudentActivityStatus previousStatus) {
         try {

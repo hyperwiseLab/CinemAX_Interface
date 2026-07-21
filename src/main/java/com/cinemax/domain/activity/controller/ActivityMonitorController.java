@@ -54,6 +54,19 @@ public class ActivityMonitorController extends BaseController {
         return success(activityMonitorService.getDashboard(weeklySessionId, classId), "모니터링 대시보드를 조회했습니다.");
     }
 
+    // 학생 도움요청 (즉시 NEED_HELP 전환)
+    @PostMapping("/weekly-session/{weeklySessionId}/help-request/{userId}")
+    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR', 'ADMIN')")
+    @Operation(summary = "도움요청", description = "학생을 즉시 도움필요(NEED_HELP) 상태로 전환하고 교수 화면에 웹소켓으로 알립니다.")
+    public ResponseEntity<ApiResponse<Void>> requestHelp(
+            @Parameter(description = "주차별 수업 ID") @PathVariable Long weeklySessionId,
+            @Parameter(description = "학생 ID") @PathVariable Long userId) {
+
+        activityMonitorService.requestHelp(weeklySessionId, userId);
+
+        return success(null, "도움요청이 전달되었습니다.");
+    }
+
     // 특정 상태의 학생 목록 조회 (교수용)
     @GetMapping("/weekly-session/{weeklySessionId}/status/{status}")
     @PreAuthorize("hasAnyRole('PROFESSOR', 'ADMIN')")
