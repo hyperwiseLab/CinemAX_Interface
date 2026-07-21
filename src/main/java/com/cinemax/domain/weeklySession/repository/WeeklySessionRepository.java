@@ -24,8 +24,11 @@ public interface WeeklySessionRepository extends JpaRepository<WeeklySession, Lo
     @Query("SELECT A FROM WeeklySession A WHERE A.inviteId = :inviteId ORDER BY A.weekNo")
     List<WeeklySession> findByInviteIdOrderByWeekNo(@Param("inviteId") Long inviteId);
 
-    // 상태별 주차별 수업 조회
-    List<WeeklySession> findByStatus(WeeklySessionStatus status);
+    // 상태별 주차별 수업 조회 (반 정보까지 fetch join - 응답에 classId/classNm 포함용)
+    @Query("SELECT A FROM WeeklySession A " +
+            "LEFT JOIN FETCH A.classInvite I LEFT JOIN FETCH I.classEntity " +
+            "WHERE A.status = :status")
+    List<WeeklySession> findByStatus(@Param("status") WeeklySessionStatus status);
 
     // 초대 ID와 상태로 주차별 수업 조회
     List<WeeklySession> findByInviteIdAndStatus(Long inviteId, WeeklySessionStatus status);
