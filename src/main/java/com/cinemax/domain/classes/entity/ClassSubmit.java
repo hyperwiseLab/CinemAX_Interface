@@ -88,13 +88,14 @@ public class ClassSubmit extends BaseTimeEntity {
     }
 
     // 정적 팩토리 메서드
-    public static ClassSubmit create(Long userId, Long taskId, Long classId, Long weeklySessionId,
+    public static ClassSubmit create(Long userId, Long taskId, Long classId, Long cycleId, Long weeklySessionId,
                                      Boolean result, BigDecimal score, String detailJson,
                                      Boolean isFirstEval, Integer submitNum) {
         return ClassSubmit.builder()
                 .userId(userId)
                 .taskId(taskId)
                 .classId(classId)
+                .cycleId(cycleId)
                 .weeklySessionId(weeklySessionId)
                 .submitAt(LocalDateTime.now())
                 .result(result)
@@ -104,5 +105,10 @@ public class ClassSubmit extends BaseTimeEntity {
                 .submitNum(submitNum)
                 .submitYn(true)
                 .build();
+    }
+
+    // 재제출 덮어쓰기: 이전 제출을 무효 처리 (이력은 행으로 보존, 성적·통계에서 제외)
+    public void invalidate() {
+        this.submitYn = false;
     }
 }

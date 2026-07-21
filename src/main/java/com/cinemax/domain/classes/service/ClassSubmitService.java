@@ -22,4 +22,7 @@ public interface ClassSubmitService {
 
     boolean hasSubmission(Long taskId, Long classId, Long userId);
 
+    // 학생별 세션+사이클 기준 제출 여부 (중복 제출 판정)
+    boolean hasCycleSubmission(Long userId, Long weeklySessionId, Long cycleId);
+
 }

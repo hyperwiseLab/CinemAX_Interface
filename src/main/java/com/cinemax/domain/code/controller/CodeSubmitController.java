@@ -155,9 +155,15 @@ public class CodeSubmitController extends BaseController {
     @Operation(summary = "제출 여부 확인", description = "특정 과제에 제출 이력이 있는지 확인합니다.")
     public ResponseEntity<ApiResponse<Boolean>> hasSubmission(@Parameter(description = "과제 ID") @RequestParam Long taskId,
                                                               @Parameter(description = "수업 ID") @RequestParam Long classId,
+                                                              @Parameter(description = "주차 수업 ID (사이클 기준 판정 시)") @RequestParam(required = false) Long weeklySessionId,
+                                                              @Parameter(description = "사이클 ID (사이클 기준 판정 시)") @RequestParam(required = false) Long cycleId,
                                                               @AuthenticationPrincipal com.cinemax.global.security.CustomUserDetailsService userDetails) {
 
-        boolean exists = classSubmitService.hasSubmission(taskId, classId, userDetails.getUserId());
+        // weeklySessionId + cycleId 가 오면 "본인 + 이번 세션 + 이 사이클" 기준으로 정확히 판정
+        // (기존 taskId+classId 방식은 반 전체·과거 세션 제출까지 잡히는 문제가 있어 호환용으로만 유지)
+        boolean exists = (weeklySessionId != null && cycleId != null)
+                ? classSubmitService.hasCycleSubmission(userDetails.getUserId(), weeklySessionId, cycleId)
+                : classSubmitService.hasSubmission(taskId, classId, userDetails.getUserId());
 
         return success(exists, "제출 여부를 확인했습니다.");
     }

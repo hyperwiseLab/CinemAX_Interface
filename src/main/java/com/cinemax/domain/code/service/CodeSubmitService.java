@@ -122,10 +122,19 @@ public class CodeSubmitService {
         // 상세 결과 JSON 생성
         String detailJson = createDetailJson(testResults);
 
+        // 재제출 덮어쓰기: 같은 (본인+세션+사이클)의 이전 유효 제출을 무효화
+        // (난이도 전환으로 taskId가 달라져도 같은 사이클이면 최신 제출만 유효 - 통계 왜곡 방지)
+        if (request.getWeeklySessionId() != null && request.getCycleId() != null) {
+            classSubmitRepository.findActiveUserCycleSubmissions(
+                            userId, request.getWeeklySessionId(), request.getCycleId())
+                    .forEach(ClassSubmit::invalidate);
+        }
+
         ClassSubmit classSubmit = ClassSubmit.create(
                 userId,
                 request.getTaskId(),
                 request.getClassId(),
+                request.getCycleId(),
                 request.getWeeklySessionId(),
                 allPassed,
                 score,

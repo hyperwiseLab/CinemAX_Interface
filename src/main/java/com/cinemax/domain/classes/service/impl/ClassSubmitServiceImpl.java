@@ -112,4 +112,11 @@ public class ClassSubmitServiceImpl implements ClassSubmitService {
 
         return classSubmitRepository.countSubmissions(taskId, classId) > 0;
     }
+
+    // 학생별 세션+사이클 기준 제출 여부 (중복 제출 판정)
+    @Override
+    public boolean hasCycleSubmission(Long userId, Long weeklySessionId, Long cycleId) {
+
+        return classSubmitRepository.countUserCycleSubmissions(userId, weeklySessionId, cycleId) > 0;
+    }
 }

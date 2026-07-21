@@ -42,6 +42,20 @@ public interface ClassSubmitRepository extends JpaRepository<ClassSubmit, Long> 
     Long countSubmissions(@Param("taskId") Long taskId,
                           @Param("classId") Long classId);
 
+    // 학생별 "이번 세션의 이 사이클" 제출 수 (중복 제출 판정용 - 난이도 전환으로 taskId가 바뀌어도 잡힘)
+    @Query("SELECT COUNT(A) FROM ClassSubmit A WHERE A.userId = :userId " +
+            "AND A.weeklySessionId = :weeklySessionId AND A.cycleId = :cycleId AND A.submitYn = true")
+    Long countUserCycleSubmissions(@Param("userId") Long userId,
+                                   @Param("weeklySessionId") Long weeklySessionId,
+                                   @Param("cycleId") Long cycleId);
+
+    // 같은 (본인+세션+사이클)의 유효 제출 목록 (재제출 덮어쓰기 시 무효화 대상)
+    @Query("SELECT A FROM ClassSubmit A WHERE A.userId = :userId " +
+            "AND A.weeklySessionId = :weeklySessionId AND A.cycleId = :cycleId AND A.submitYn = true")
+    List<ClassSubmit> findActiveUserCycleSubmissions(@Param("userId") Long userId,
+                                                     @Param("weeklySessionId") Long weeklySessionId,
+                                                     @Param("cycleId") Long cycleId);
+
     // 합격한 학생 수 조회
     @Query("SELECT COUNT(A) FROM ClassSubmit A WHERE A.taskId = :taskId " +
             "AND A.classId = :classId AND A.result = true AND A.submitYn = true")
