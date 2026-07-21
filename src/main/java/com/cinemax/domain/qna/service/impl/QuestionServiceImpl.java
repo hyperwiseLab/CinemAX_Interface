@@ -115,9 +115,10 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<QuestionResponse> getQuestionsByUserId(Long userId) {
-        List<Question> questions = questionRepository.findByUserId(userId);
+        // 학생 QnA 화면에서 교수 답변까지 보여야 하므로 답변 포함 조회
+        List<Question> questions = questionRepository.findByUserIdWithAnswers(userId);
         return questions.stream()
-                .map(questionMapper::toDtoWithoutAnswers)
+                .map(questionMapper::toDto)
                 .collect(Collectors.toList());
     }
 
