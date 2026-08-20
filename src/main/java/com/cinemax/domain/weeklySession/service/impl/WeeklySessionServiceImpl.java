@@ -168,6 +168,12 @@ public class WeeklySessionServiceImpl implements WeeklySessionService {
         return weeklySessionRepository.findByStatus(status);
     }
 
+    // 교수 본인 수업으로 한정한 상태 별 주차 별 수업 조회
+    @Override
+    public List<WeeklySession> getSessionsByStatusForProfessor(WeeklySessionStatus status, Long professorId) {
+        return weeklySessionRepository.findByStatusAndProfessorId(status, professorId);
+    }
+
     // 주차 별 수업 상세 조회
     @Override
     @Transactional

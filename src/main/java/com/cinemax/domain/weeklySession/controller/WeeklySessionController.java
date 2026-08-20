@@ -16,7 +16,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import com.cinemax.global.security.CustomUserDetailsService;
+import com.cinemax.domain.user.repository.UserRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +34,22 @@ public class WeeklySessionController extends BaseController {
 
     private final WeeklySessionService weeklySessionService;
     private final WeeklySessionMapper weeklySessionMapper;
+    private final UserRepository userRepository;
+
+    // 인증 principal 에서 userId 취득 (요청 파라미터 신뢰 금지)
+    private Long resolveUserId(CustomUserDetailsService userDetails, Authentication authentication) {
+        if (userDetails != null) {
+            return userDetails.getUserId();
+        }
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new IllegalArgumentException("인증 사용자 정보를 찾을 수 없습니다."))
+                .getUserId();
+    }
+
+    private boolean isAdmin(Authentication authentication) {
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    }
 
     // 주차별 수업 시작
     @PostMapping("/start")
@@ -114,10 +134,18 @@ public class WeeklySessionController extends BaseController {
 
     // 상태별 주차별 수업 목록 조회 (status만으로 검색)
     @GetMapping("/status/{status}")
-    @Operation(summary = "상태별 주차별 수업 목록", description = "특정 상태의 주차별 수업 목록을 조회합니다. status만으로 검색하며, response에는 inviteId가 포함됩니다.")
-    public ResponseEntity<ApiResponse<List<WeeklySessionResponse>>> getWeeklySessionsByStatus(@Parameter(description = "상태 (PENDING, IN_PROGRESS, COMPLETED)") @PathVariable WeeklySessionStatus status) {
+    @PreAuthorize("hasAnyRole('PROFESSOR', 'ADMIN')")
+    @Operation(summary = "상태별 주차별 수업 목록", description = "특정 상태의 주차별 수업 목록을 조회합니다. 교수는 본인이 개설한 수업만 조회되며, 관리자는 전체를 조회합니다.")
+    public ResponseEntity<ApiResponse<List<WeeklySessionResponse>>> getWeeklySessionsByStatus(
+            @Parameter(description = "상태 (PENDING, IN_PROGRESS, COMPLETED)") @PathVariable WeeklySessionStatus status,
+            @AuthenticationPrincipal CustomUserDetailsService userDetails,
+            Authentication authentication) {
 
-        List<WeeklySession> weeklySessions = weeklySessionService.getSessionsByStatusOnly(status);
+        // 관리자만 전체 조회, 교수는 본인 수업으로 한정 (타 교수 수업 노출 방지)
+        List<WeeklySession> weeklySessions = isAdmin(authentication)
+                ? weeklySessionService.getSessionsByStatusOnly(status)
+                : weeklySessionService.getSessionsByStatusForProfessor(status, resolveUserId(userDetails, authentication));
+
         List<WeeklySessionResponse> responses = weeklySessions.stream()
                 .map(weeklySessionMapper::toResponse)
                 .toList();

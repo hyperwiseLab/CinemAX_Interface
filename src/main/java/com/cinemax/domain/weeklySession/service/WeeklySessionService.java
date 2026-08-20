@@ -48,6 +48,9 @@ public interface WeeklySessionService {
     // 상태만으로 주차별 수업 조회 (inviteId 제외)
     List<WeeklySession> getSessionsByStatusOnly(WeeklySessionStatus status);
 
+    // 교수 본인 수업으로 한정한 상태별 주차별 수업 조회
+    List<WeeklySession> getSessionsByStatusForProfessor(WeeklySessionStatus status, Long professorId);
+
     // 주차별 수업 상세 조회
     WeeklySession getSession(Long inviteId, Integer weekNo);
 

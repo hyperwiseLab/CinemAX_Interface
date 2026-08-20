@@ -30,6 +30,13 @@ public interface WeeklySessionRepository extends JpaRepository<WeeklySession, Lo
             "WHERE A.status = :status")
     List<WeeklySession> findByStatus(@Param("status") WeeklySessionStatus status);
 
+    // 교수 본인 수업으로 한정한 상태별 주차별 수업 조회 (타 교수 수업 노출 방지)
+    @Query("SELECT A FROM WeeklySession A " +
+            "JOIN FETCH A.classInvite I JOIN FETCH I.classEntity C " +
+            "WHERE A.status = :status AND C.user.userId = :professorId")
+    List<WeeklySession> findByStatusAndProfessorId(@Param("status") WeeklySessionStatus status,
+                                                    @Param("professorId") Long professorId);
+
     // 초대 ID와 상태로 주차별 수업 조회
     List<WeeklySession> findByInviteIdAndStatus(Long inviteId, WeeklySessionStatus status);
 
