@@ -618,7 +618,7 @@ public class CbtServiceImpl implements CbtService {
             long bankCount = questionRepository.countByClassIdAndWeekNoAndUseYnTrue(classId, week.getWeekNo());
             items.add(CbtWeekConfigResponse.Item.builder()
                     .weekNo(week.getWeekNo())
-                    .title(week.getSubtitle() != null ? week.getSubtitle() : week.getTitle())
+                    .title(week.getTitle() != null ? week.getTitle() : week.getSubtitle())
                     .questionCount(questionCount)
                     .passScore(config != null ? config.getPassScore() : CbtWeekConfig.DEFAULT_PASS_SCORE)
                     .useYn(config == null || Boolean.TRUE.equals(config.getUseYn()))
