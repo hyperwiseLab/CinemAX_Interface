@@ -181,7 +181,8 @@ public class CbtController extends BaseController {
     // ===== 주차별 CBT =====
 
     @GetMapping("/classes/{classId}/weeks")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    // 학생 응시 화면이 주차 목록을 그리는 데 사용하므로 조회는 STUDENT 도 허용한다 (저장은 관리자 전용)
+    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR', 'ADMIN')")
     @Operation(summary = "주차별 CBT 설정 조회",
             description = "커리큘럼 주차별 출제 문항 수/합격 기준과 주차별 보유 문항 수를 조회합니다.")
     public ResponseEntity<ApiResponse<CbtWeekConfigResponse>> getWeekConfigs(
