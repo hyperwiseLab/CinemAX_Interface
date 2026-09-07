@@ -88,11 +88,12 @@ public class CbtController extends BaseController {
     public ResponseEntity<ApiResponse<Page<CbtQuestionResponse>>> getQuestions(
             @Parameter(description = "반 ID") @RequestParam Long classId,
             @Parameter(description = "과목 ID 필터") @RequestParam(required = false) Long subjectId,
+            @Parameter(description = "주차 필터") @RequestParam(required = false) Integer weekNo,
             @Parameter(description = "지문 검색 키워드") @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Page<CbtQuestionResponse> result = cbtService.getQuestions(
-                classId, subjectId, keyword, PageRequest.of(page, size));
+                classId, subjectId, weekNo, keyword, PageRequest.of(page, size));
         return success(result, "문제 목록 조회 성공");
     }
 
@@ -176,4 +177,51 @@ public class CbtController extends BaseController {
         Long userId = resolveUserId(userDetails, authentication);
         return success(cbtService.getAttempt(attemptId, userId, isAdmin(authentication)), "회차 상세 조회 성공");
     }
+
+    // ===== 주차별 CBT =====
+
+    @GetMapping("/classes/{classId}/weeks")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    @Operation(summary = "주차별 CBT 설정 조회",
+            description = "커리큘럼 주차별 출제 문항 수/합격 기준과 주차별 보유 문항 수를 조회합니다.")
+    public ResponseEntity<ApiResponse<CbtWeekConfigResponse>> getWeekConfigs(
+            @Parameter(description = "반 ID") @PathVariable Long classId) {
+        return success(cbtService.getWeekConfigs(classId), "주차별 설정 조회 성공");
+    }
+
+    @PutMapping("/classes/{classId}/weeks")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    @Operation(summary = "주차별 CBT 설정 저장",
+            description = "주차별 출제 문항 수와 합격 기준 정답률을 저장합니다.")
+    public ResponseEntity<ApiResponse<CbtWeekConfigResponse>> saveWeekConfigs(
+            @Parameter(description = "반 ID") @PathVariable Long classId,
+            @Valid @RequestBody CbtWeekConfigSaveRequest request) {
+        return success(cbtService.saveWeekConfigs(classId, request), "주차별 설정이 저장되었습니다.");
+    }
+
+    @GetMapping("/classes/{classId}/weeks/{weekNo}/practice")
+    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR', 'ADMIN')")
+    @Operation(summary = "주차별 응시 문제 세트",
+            description = "해당 주차 문항 중 설정된 수만큼 랜덤 추출합니다 (정답/해설 숨김). "
+                    + "보유 문항이 부족하면 보유분 전체로 축소 출제되며 reduced=true 로 표시됩니다.")
+    public ResponseEntity<ApiResponse<CbtPracticeResponse>> getWeekPracticeSet(
+            @Parameter(description = "반 ID") @PathVariable Long classId,
+            @Parameter(description = "주차 번호") @PathVariable Integer weekNo) {
+        return success(cbtService.getWeekPracticeSet(classId, weekNo), "주차별 문제 세트 조회 성공");
+    }
+
+    @PostMapping("/classes/{classId}/weeks/{weekNo}/attempts")
+    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR', 'ADMIN')")
+    @Operation(summary = "주차별 답안 제출·채점",
+            description = "정답률(%) 기준으로 채점하고 주차별 응시 기록으로 저장합니다.")
+    public ResponseEntity<ApiResponse<CbtWeekResultResponse>> submitWeek(
+            @Parameter(description = "반 ID") @PathVariable Long classId,
+            @Parameter(description = "주차 번호") @PathVariable Integer weekNo,
+            @Valid @RequestBody CbtSubmitRequest request,
+            @AuthenticationPrincipal CustomUserDetailsService userDetails,
+            Authentication authentication) {
+        Long userId = resolveUserId(userDetails, authentication);
+        return created(cbtService.submitWeek(classId, userId, weekNo, request), "채점이 완료되었습니다.");
+    }
+
 }

@@ -32,9 +32,13 @@ public class CbtAttempt extends BaseTimeEntity {
     @Column(name = "USER_ID", nullable = false)
     private Long userId;
 
-    // 학생별 회차 (1, 2, 3, ...)
+    // 학생별 회차 (1, 2, 3, ...) - 전체 모의고사/주차별 각각 독립 채번
     @Column(name = "ROUND_NO", nullable = false)
     private Integer roundNo;
+
+    // null = 전체 모의고사, 값 있음 = 해당 주차 CBT
+    @Column(name = "WEEK_NO")
+    private Integer weekNo;
 
     // 총점 (100점 만점)
     @Column(name = "TOTAL_SCORE", nullable = false)
@@ -56,11 +60,13 @@ public class CbtAttempt extends BaseTimeEntity {
     private LocalDateTime submittedAt;
 
     @Builder
-    public CbtAttempt(Long classId, Long userId, Integer roundNo, Double totalScore, Boolean passYn,
-                      String subjectScoresJson, String answersJson, LocalDateTime submittedAt) {
+    public CbtAttempt(Long classId, Long userId, Integer roundNo, Integer weekNo, Double totalScore,
+                      Boolean passYn, String subjectScoresJson, String answersJson,
+                      LocalDateTime submittedAt) {
         this.classId = classId;
         this.userId = userId;
         this.roundNo = roundNo;
+        this.weekNo = weekNo;
         this.totalScore = totalScore;
         this.passYn = passYn;
         this.subjectScoresJson = subjectScoresJson;
@@ -70,10 +76,18 @@ public class CbtAttempt extends BaseTimeEntity {
 
     public static CbtAttempt create(Long classId, Long userId, Integer roundNo, Double totalScore,
                                     Boolean passYn, String subjectScoresJson, String answersJson) {
+        return create(classId, userId, roundNo, null, totalScore, passYn, subjectScoresJson, answersJson);
+    }
+
+    // 주차별 CBT 응시 기록 (weekNo != null)
+    public static CbtAttempt create(Long classId, Long userId, Integer roundNo, Integer weekNo,
+                                    Double totalScore, Boolean passYn, String subjectScoresJson,
+                                    String answersJson) {
         return CbtAttempt.builder()
                 .classId(classId)
                 .userId(userId)
                 .roundNo(roundNo)
+                .weekNo(weekNo)
                 .totalScore(totalScore)
                 .passYn(passYn)
                 .subjectScoresJson(subjectScoresJson)

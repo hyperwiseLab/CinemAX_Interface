@@ -50,6 +50,7 @@ public enum ErrorCode {
     CBT_SUBJECT_HAS_QUESTIONS(6102, "문제가 등록된 과목은 삭제할 수 없습니다"),
     CBT_NOT_CONFIGURED(6103, "CBT 과목 설정이 완료되지 않았습니다"),
     CBT_QUESTION_BANK_INSUFFICIENT(6104, "문제 은행의 문항 수가 출제 문항 수보다 부족합니다"),
+    CBT_WEEK_NOT_AVAILABLE(6105, "해당 주차 CBT 를 응시할 수 없습니다"),
 
     // 이메일 검증 관련 에러 (7000번대)
     EMAIL_SEND_FAILED(7000, "이메일 발송에 실패했습니다"),

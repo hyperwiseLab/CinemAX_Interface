@@ -7,6 +7,9 @@ import com.cinemax.domain.cbt.dto.*;
 import com.cinemax.domain.cbt.entity.*;
 import com.cinemax.domain.cbt.repository.*;
 import com.cinemax.domain.cbt.service.CbtService;
+import com.cinemax.domain.classes.repository.ClassEntityRepository;
+import com.cinemax.domain.curriculum.entity.CurriculumWeek;
+import com.cinemax.domain.curriculum.repository.CurriculumWeekRepository;
 import com.cinemax.domain.user.entity.User;
 import com.cinemax.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,6 +38,9 @@ public class CbtServiceImpl implements CbtService {
     private final CbtSubjectRepository subjectRepository;
     private final CbtQuestionRepository questionRepository;
     private final CbtAttemptRepository attemptRepository;
+    private final CbtWeekConfigRepository weekConfigRepository;
+    private final ClassEntityRepository classEntityRepository;
+    private final CurriculumWeekRepository curriculumWeekRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
@@ -174,7 +180,7 @@ public class CbtServiceImpl implements CbtService {
                     name -> subjectRepository.save(
                             CbtSubject.createDefault(classId, name, subjectByName.size() + 1)));
 
-            CbtQuestion question = CbtQuestion.create(classId, subject.getSubjectId(),
+            CbtQuestion question = CbtQuestion.create(classId, subject.getSubjectId(), item.getWeekNo(),
                     item.getContent(), item.getExplanation(), createdBy);
             for (CbtQuestionBulkRequest.OptionItem option : item.getOptions()) {
                 question.addOption(CbtQuestionOption.create(option.getOrderNo(), option.getContent(), option.getCorrect()));
@@ -210,10 +216,11 @@ public class CbtServiceImpl implements CbtService {
     }
 
     @Override
-    public Page<CbtQuestionResponse> getQuestions(Long classId, Long subjectId, String keyword, Pageable pageable) {
+    public Page<CbtQuestionResponse> getQuestions(Long classId, Long subjectId, Integer weekNo,
+                                                 String keyword, Pageable pageable) {
         Map<Long, String> subjectNames = subjectNameMap(classId);
         String normalizedKeyword = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
-        return questionRepository.search(classId, subjectId, normalizedKeyword, pageable)
+        return questionRepository.search(classId, subjectId, weekNo, normalizedKeyword, pageable)
                 .map(q -> toQuestionDto(q, subjectNames));
     }
 
@@ -238,7 +245,8 @@ public class CbtServiceImpl implements CbtService {
                 .filter(s -> s.getClassId().equals(question.getClassId()))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "과목을 찾을 수 없습니다: " + request.getSubjectId()));
 
-        question.updateInfo(request.getSubjectId(), request.getContent(), request.getExplanation(), request.getUseYn());
+        question.updateInfo(request.getSubjectId(), request.getWeekNo(), request.getContent(),
+                request.getExplanation(), request.getUseYn());
         question.replaceOptions(request.getOptions().stream()
                 .map(o -> CbtQuestionOption.create(o.getOrderNo(), o.getContent(), o.getCorrect()))
                 .collect(Collectors.toList()));
@@ -261,6 +269,7 @@ public class CbtServiceImpl implements CbtService {
 
     private CbtQuestionResponse toQuestionDto(CbtQuestion question, Map<Long, String> subjectNames) {
         return CbtQuestionResponse.builder()
+                .weekNo(question.getWeekNo())
                 .questionId(question.getQuestionId())
                 .classId(question.getClassId())
                 .subjectId(question.getSubjectId())
@@ -343,7 +352,7 @@ public class CbtServiceImpl implements CbtService {
         }
 
         List<CbtAttemptSummaryResponse> myAttempts =
-                attemptRepository.findByClassIdAndUserIdOrderByRoundNoDesc(classId, userId).stream()
+                attemptRepository.findFullExamAttempts(classId, userId).stream()
                         .map(this::toSummaryDto)
                         .collect(Collectors.toList());
 
@@ -583,4 +592,186 @@ public class CbtServiceImpl implements CbtService {
             return Collections.emptyList();
         }
     }
+
+    // ===== 주차별 CBT =====
+
+    // 반 -> 커리큘럼 주차 목록 (설정 화면의 주차 뼈대)
+    private List<CurriculumWeek> curriculumWeeks(Long classId) {
+        Long curId = classEntityRepository.findById(classId)
+                .map(c -> c.getCurriculum().getCurId())
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ENTITY_NOT_FOUND,
+                        "반을 찾을 수 없습니다: " + classId));
+        return curriculumWeekRepository.findByCurIdOrderByWeekNo(curId);
+    }
+
+    @Override
+    public CbtWeekConfigResponse getWeekConfigs(Long classId) {
+        List<CurriculumWeek> weeks = curriculumWeeks(classId);
+        Map<Integer, CbtWeekConfig> configByWeek = weekConfigRepository
+                .findByClassIdOrderByWeekNoAsc(classId).stream()
+                .collect(Collectors.toMap(CbtWeekConfig::getWeekNo, Function.identity(), (a, b) -> a));
+
+        List<CbtWeekConfigResponse.Item> items = new ArrayList<>();
+        for (CurriculumWeek week : weeks) {
+            CbtWeekConfig config = configByWeek.get(week.getWeekNo());
+            int questionCount = config != null ? config.getQuestionCount() : CbtWeekConfig.DEFAULT_QUESTION_COUNT;
+            long bankCount = questionRepository.countByClassIdAndWeekNoAndUseYnTrue(classId, week.getWeekNo());
+            items.add(CbtWeekConfigResponse.Item.builder()
+                    .weekNo(week.getWeekNo())
+                    .title(week.getSubtitle() != null ? week.getSubtitle() : week.getTitle())
+                    .questionCount(questionCount)
+                    .passScore(config != null ? config.getPassScore() : CbtWeekConfig.DEFAULT_PASS_SCORE)
+                    .useYn(config == null || Boolean.TRUE.equals(config.getUseYn()))
+                    .bankCount(bankCount)
+                    .insufficient(bankCount < questionCount)
+                    .build());
+        }
+        return CbtWeekConfigResponse.builder()
+                .totalWeeks(weeks.size())
+                .weeks(items)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public CbtWeekConfigResponse saveWeekConfigs(Long classId, CbtWeekConfigSaveRequest request) {
+        Map<Integer, CbtWeekConfig> existing = weekConfigRepository
+                .findByClassIdOrderByWeekNoAsc(classId).stream()
+                .collect(Collectors.toMap(CbtWeekConfig::getWeekNo, Function.identity(), (a, b) -> a));
+
+        for (CbtWeekConfigSaveRequest.Item item : request.getWeeks()) {
+            CbtWeekConfig config = existing.get(item.getWeekNo());
+            if (config != null) {
+                config.updateSettings(item.getQuestionCount(), item.getPassScore(), item.getUseYn());
+            } else {
+                weekConfigRepository.save(CbtWeekConfig.builder()
+                        .classId(classId)
+                        .weekNo(item.getWeekNo())
+                        .questionCount(item.getQuestionCount())
+                        .passScore(item.getPassScore())
+                        .useYn(item.getUseYn())
+                        .build());
+            }
+        }
+        return getWeekConfigs(classId);
+    }
+
+    // 주차 설정 조회 (없으면 기본값)
+    private CbtWeekConfig weekConfigOrDefault(Long classId, Integer weekNo) {
+        return weekConfigRepository.findByClassIdAndWeekNo(classId, weekNo)
+                .orElseGet(() -> CbtWeekConfig.createDefault(classId, weekNo));
+    }
+
+    @Override
+    public CbtPracticeResponse getWeekPracticeSet(Long classId, Integer weekNo) {
+        CbtWeekConfig config = weekConfigOrDefault(classId, weekNo);
+        if (!Boolean.TRUE.equals(config.getUseYn())) {
+            throw new BusinessException(ErrorCode.CBT_WEEK_NOT_AVAILABLE,
+                    weekNo + "주차 CBT 는 현재 사용하지 않도록 설정되어 있습니다.");
+        }
+
+        List<CbtQuestion> pool = questionRepository.findPlayableByWeek(classId, weekNo);
+        if (pool.isEmpty()) {
+            throw new BusinessException(ErrorCode.CBT_QUESTION_BANK_INSUFFICIENT,
+                    weekNo + "주차에 등록된 문항이 없습니다.");
+        }
+
+        // 보유 문항이 설정 수보다 적으면 있는 만큼만 출제한다 (응시 자체를 막지 않음)
+        int take = Math.min(config.getQuestionCount(), pool.size());
+        boolean reduced = take < config.getQuestionCount();
+
+        Collections.shuffle(pool);
+        Map<Long, String> subjectNames = subjectNameMap(classId);
+        List<CbtPracticeResponse.Question> questions = new ArrayList<>();
+        int orderNo = 1;
+        for (CbtQuestion question : pool.subList(0, take)) {
+            questions.add(CbtPracticeResponse.Question.builder()
+                    .questionId(question.getQuestionId())
+                    .subjectId(question.getSubjectId())
+                    .subjectNm(subjectNames.get(question.getSubjectId()))
+                    .orderNo(orderNo++)
+                    .content(question.getContent())
+                    .options(question.getOptions().stream()
+                            .sorted(Comparator.comparing(CbtQuestionOption::getOrderNo))
+                            .map(o -> new CbtPracticeResponse.Option(o.getOrderNo(), o.getContent()))
+                            .collect(Collectors.toList()))
+                    .build());
+        }
+
+        return CbtPracticeResponse.builder()
+                .totalCount(questions.size())
+                .weekNo(weekNo)
+                .reduced(reduced)
+                .questions(questions)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public CbtWeekResultResponse submitWeek(Long classId, Long userId, Integer weekNo,
+                                            CbtSubmitRequest request) {
+        CbtWeekConfig config = weekConfigOrDefault(classId, weekNo);
+
+        Map<Long, Integer> selectedByQuestion = new LinkedHashMap<>();
+        for (CbtSubmitRequest.Answer answer : request.getAnswers()) {
+            selectedByQuestion.put(answer.getQuestionId(), answer.getSelectedOrderNo());
+        }
+
+        List<CbtQuestion> questions = questionRepository
+                .findAllWithOptionsByIds(new ArrayList<>(selectedByQuestion.keySet())).stream()
+                .filter(q -> q.getClassId().equals(classId))
+                .collect(Collectors.toList());
+        if (questions.isEmpty()) {
+            throw new BusinessException(ErrorCode.CBT_QUESTION_BANK_INSUFFICIENT, "채점할 문항이 없습니다.");
+        }
+
+        Map<Long, String> subjectNames = subjectNameMap(classId);
+        List<CbtAttemptResultResponse.Item> items = new ArrayList<>();
+        int correctCount = 0;
+        for (CbtQuestion question : questions) {
+            Integer selected = selectedByQuestion.get(question.getQuestionId());
+            Integer correctOrderNo = question.correctOrderNo();
+            boolean correct = selected != null && selected.equals(correctOrderNo);
+            if (correct) {
+                correctCount++;
+            }
+            items.add(CbtAttemptResultResponse.Item.builder()
+                    .questionId(question.getQuestionId())
+                    .subjectId(question.getSubjectId())
+                    .subjectNm(subjectNames.get(question.getSubjectId()))
+                    .content(question.getContent())
+                    .explanation(question.getExplanation())
+                    .options(question.getOptions().stream()
+                            .sorted(Comparator.comparing(CbtQuestionOption::getOrderNo))
+                            .map(o -> new CbtPracticeResponse.Option(o.getOrderNo(), o.getContent()))
+                            .collect(Collectors.toList()))
+                    .selectedOrderNo(selected)
+                    .correctOrderNo(correctOrderNo)
+                    .correct(correct)
+                    .build());
+        }
+
+        // 주차별은 과목 배점/과락이 아닌 정답률(%) 로 판정한다
+        int totalCount = questions.size();
+        double score = round2(correctCount * 100.0 / totalCount);
+        boolean pass = score >= config.getPassScore() - SCORE_EPSILON;
+
+        int roundNo = attemptRepository.findMaxWeekRoundNo(classId, userId, weekNo) + 1;
+        CbtAttempt attempt = attemptRepository.save(CbtAttempt.create(
+                classId, userId, roundNo, weekNo, score, pass, null, toJson(items)));
+
+        return CbtWeekResultResponse.builder()
+                .attemptId(attempt.getAttemptId())
+                .weekNo(weekNo)
+                .roundNo(roundNo)
+                .correctCount(correctCount)
+                .totalCount(totalCount)
+                .score(score)
+                .passScore(config.getPassScore())
+                .passYn(pass)
+                .submittedAt(attempt.getSubmittedAt())
+                .items(items)
+                .build();
+    }
+
 }

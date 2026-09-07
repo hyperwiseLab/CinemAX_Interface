@@ -31,6 +31,9 @@ public class CbtQuestionResponse {
     @Schema(description = "과목명")
     private String subjectNm;
 
+    @Schema(description = "커리큘럼 주차(null 이면 미지정)")
+    private Integer weekNo;
+
     @Schema(description = "지문")
     private String content;
 

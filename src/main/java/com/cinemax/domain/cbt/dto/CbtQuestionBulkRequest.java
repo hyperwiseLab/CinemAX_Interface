@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -44,6 +45,10 @@ public class CbtQuestionBulkRequest {
         @Size(max = 100)
         @Schema(description = "과목명(미등록 과목이면 자동 생성)", example = "파이썬 기초")
         private String subject;
+
+        @Min(1)
+        @Schema(description = "커리큘럼 주차(1~N). 생략 시 주차 미지정 - 전체 모의고사에만 출제됨", example = "3")
+        private Integer weekNo;
 
         @NotBlank
         @Schema(description = "지문")

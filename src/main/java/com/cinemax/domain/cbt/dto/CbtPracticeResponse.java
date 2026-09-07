@@ -21,6 +21,12 @@ public class CbtPracticeResponse {
     @Schema(description = "총 문항 수")
     private Integer totalCount;
 
+    @Schema(description = "주차 번호(주차별 CBT 인 경우, 전체 모의고사면 null)")
+    private Integer weekNo;
+
+    @Schema(description = "요청한 출제 수보다 보유 문항이 적어 축소 출제된 경우 true")
+    private Boolean reduced;
+
     @Schema(description = "문제 목록(과목 순서대로)")
     private List<Question> questions;
 

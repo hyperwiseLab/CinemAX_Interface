@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,10 @@ public class CbtQuestionUpdateRequest {
     @NotNull
     @Schema(description = "과목 ID")
     private Long subjectId;
+
+    @Min(1)
+    @Schema(description = "커리큘럼 주차(1~N). null 이면 주차 미지정")
+    private Integer weekNo;
 
     @NotBlank
     @Schema(description = "지문")

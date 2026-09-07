@@ -16,7 +16,9 @@ import java.util.List;
  * CBT 문제 은행 문항 (객관식). 반 + 과목에 소속되며 회차마다 랜덤 출제 대상이 된다.
  */
 @Entity
-@Table(name = "TBL_CBT_QUESTION")
+@Table(name = "TBL_CBT_QUESTION", indexes = {
+        @Index(name = "IDX_CBT_Q_WEEK", columnList = "CLASS_ID, WEEK_NO, USE_YN")
+})
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -34,6 +36,11 @@ public class CbtQuestion extends BaseTimeEntity {
 
     @Column(name = "SUBJECT_ID", nullable = false)
     private Long subjectId;
+
+    // 커리큘럼 주차 (1~N). null 이면 주차 미지정으로 주차별 CBT 출제 대상에서 제외되고
+    // 전체 모의고사에는 그대로 출제된다. (기존 문항 호환을 위해 nullable)
+    @Column(name = "WEEK_NO")
+    private Integer weekNo;
 
     // 지문 (코드 블록 포함 가능)
     @Column(name = "CONTENT", nullable = false, columnDefinition = "TEXT")
@@ -53,11 +60,12 @@ public class CbtQuestion extends BaseTimeEntity {
     @Builder.Default
     private List<CbtQuestionOption> options = new ArrayList<>();
 
-    public static CbtQuestion create(Long classId, Long subjectId, String content,
+    public static CbtQuestion create(Long classId, Long subjectId, Integer weekNo, String content,
                                      String explanation, Long createdBy) {
         return CbtQuestion.builder()
                 .classId(classId)
                 .subjectId(subjectId)
+                .weekNo(weekNo)
                 .content(content)
                 .explanation(explanation)
                 .useYn(true)
@@ -70,8 +78,9 @@ public class CbtQuestion extends BaseTimeEntity {
         option.assignQuestion(this);
     }
 
-    public void updateInfo(Long subjectId, String content, String explanation, Boolean useYn) {
+    public void updateInfo(Long subjectId, Integer weekNo, String content, String explanation, Boolean useYn) {
         this.subjectId = subjectId;
+        this.weekNo = weekNo;
         this.content = content;
         this.explanation = explanation;
         this.useYn = useYn;

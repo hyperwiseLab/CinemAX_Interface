@@ -17,8 +17,15 @@ public interface CbtService {
     // 문제 JSON 대량 등록
     CbtBulkResultResponse bulkCreateQuestions(CbtQuestionBulkRequest request, Long createdBy);
 
-    // 문제 목록 (페이징/검색/과목 필터)
-    Page<CbtQuestionResponse> getQuestions(Long classId, Long subjectId, String keyword, Pageable pageable);
+    // 문제 목록 (페이징/검색/과목·주차 필터)
+    Page<CbtQuestionResponse> getQuestions(Long classId, Long subjectId, Integer weekNo,
+                                           String keyword, Pageable pageable);
+
+    // 주차별 CBT 설정 조회
+    CbtWeekConfigResponse getWeekConfigs(Long classId);
+
+    // 주차별 CBT 설정 저장
+    CbtWeekConfigResponse saveWeekConfigs(Long classId, CbtWeekConfigSaveRequest request);
 
     // 문제 상세
     CbtQuestionResponse getQuestion(Long questionId);
@@ -45,4 +52,12 @@ public interface CbtService {
 
     // 회차 상세 복기 (본인 것만, 관리자는 전체)
     CbtAttemptResultResponse getAttempt(Long attemptId, Long userId, boolean admin);
+
+    // ===== 주차별 CBT =====
+
+    // 주차별 응시 문제 세트 (해당 주차 문항만 랜덤, 정답 숨김)
+    CbtPracticeResponse getWeekPracticeSet(Long classId, Integer weekNo);
+
+    // 주차별 제출 -> 정답률 채점 -> 기록
+    CbtWeekResultResponse submitWeek(Long classId, Long userId, Integer weekNo, CbtSubmitRequest request);
 }

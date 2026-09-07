@@ -20,10 +20,12 @@ public interface CbtQuestionRepository extends JpaRepository<CbtQuestion, Long> 
     @Query("SELECT q FROM CbtQuestion q " +
             "WHERE q.classId = :classId " +
             "AND (:subjectId IS NULL OR q.subjectId = :subjectId) " +
+            "AND (:weekNo IS NULL OR q.weekNo = :weekNo) " +
             "AND (:keyword IS NULL OR q.content LIKE %:keyword%) " +
             "ORDER BY q.questionId DESC")
     Page<CbtQuestion> search(@Param("classId") Long classId,
                              @Param("subjectId") Long subjectId,
+                             @Param("weekNo") Integer weekNo,
                              @Param("keyword") String keyword,
                              Pageable pageable);
 
@@ -39,6 +41,15 @@ public interface CbtQuestionRepository extends JpaRepository<CbtQuestion, Long> 
     @EntityGraph(attributePaths = "options")
     @Query("SELECT q FROM CbtQuestion q WHERE q.questionId IN :ids")
     List<CbtQuestion> findAllWithOptionsByIds(@Param("ids") List<Long> ids);
+
+    // 주차별 랜덤 출제 대상 (해당 주차만, 활성 문항)
+    @EntityGraph(attributePaths = "options")
+    @Query("SELECT q FROM CbtQuestion q " +
+            "WHERE q.classId = :classId AND q.weekNo = :weekNo AND q.useYn = true")
+    List<CbtQuestion> findPlayableByWeek(@Param("classId") Long classId,
+                                         @Param("weekNo") Integer weekNo);
+
+    long countByClassIdAndWeekNoAndUseYnTrue(Long classId, Integer weekNo);
 
     long countByClassIdAndSubjectIdAndUseYnTrue(Long classId, Long subjectId);
 
